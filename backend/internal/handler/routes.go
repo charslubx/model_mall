@@ -4,21 +4,40 @@
 package handler
 
 import (
-	"net/http"
-
+	"model_mall_backend/backend/internal/middleware"
 	"model_mall_backend/backend/internal/svc"
 
 	"github.com/zeromicro/go-zero/rest"
 )
 
 func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
+	// 全局中间件
+	server.Use(middleware.NewRequestMiddleware().Handle)
+	server.Use(middleware.NewResponseMiddleware().Handle)
+
+	// 公开路由（不需要认证）
+	server.AddRoutes([]rest.Route{
+		//{
+		//	Method:  http.MethodPost,
+		//	Path:    "/api/login",
+		//	Handler: LoginHandler(serverCtx),
+		//},
+		//{
+		//	Method:  http.MethodPost,
+		//	Path:    "/api/register",
+		//	Handler: RegisterHandler(serverCtx),
+		//},
+	})
+
+	// 需要认证的路由
 	server.AddRoutes(
 		[]rest.Route{
-			{
-				Method:  http.MethodGet,
-				Path:    "/from/:name",
-				Handler: BackendHandler(serverCtx),
-			},
-		},
+			//{
+			//	Method:  http.MethodGet,
+			//	Path:    "/api/user/info",
+			//	Handler: GetUserInfoHandler(serverCtx),
+			//},
+			// 其他需要认证的路由...
+		}, rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
 	)
 }

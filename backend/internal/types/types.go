@@ -3,10 +3,22 @@
 
 package types
 
+type LoginReq struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+type LoginResp struct {
+	AccessToken string `json:"access_token"`
+	ExpireTime  int64  `json:"expire_time"`
+}
+
 type Request struct {
 	Name string `path:"name,options=you|me"`
 }
 
 type Response struct {
-	Message string `json:"message"`
+	Code    int         `json:"code"`
+	Message string      `json:"message"`
+	Data    interface{} `json:"data,omitempty"`
 }

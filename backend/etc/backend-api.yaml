@@ -1,3 +1,24 @@
 Name: backend-api
 Host: 0.0.0.0
 Port: 8888
+Auth:
+  AccessSecret: 5f5b9995bf6c793c07be95be8d5a59ccc3899ca13250b7712a08f04c6b0f4ff9
+  AccessExpire: 86400  # token过期时间，单位：秒（这里设置为24小时）
+PostgreSQL:
+  Host: localhost
+  Port: 5432
+  Username: postgres
+  Password: your-password  # 请修改为实际密码
+  Database: model_mall
+  SSLMode: disable
+Redis:
+  Host: localhost
+  Port: 6379
+  Password: ""  # 如果有密码，请修改
+  DB: 0
+MySQL:
+  Host: localhost
+  Port: 3306
+  Username: root
+  Password: your-password  # 请修改为实际密码
+  Database: model_mall
