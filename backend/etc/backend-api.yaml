@@ -14,7 +14,7 @@ PostgreSQL:
 Redis:
   Host: localhost
   Port: 6379
-  Password: ""  # 如果有密码，请修改
+  Password: "zqy5483201"
   DB: 0
 MySQL:
   Host: localhost
