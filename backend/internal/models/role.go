@@ -10,7 +10,7 @@ type Role struct {
 	Name        string    `json:"name" gorm:"type:varchar(50);uniqueIndex;not null;comment:角色名称"`
 	Code        string    `json:"code" gorm:"type:varchar(50);uniqueIndex;not null;comment:角色代码"`
 	Description string    `json:"description" gorm:"type:varchar(255);comment:角色描述"`
-	Status      int8      `json:"status" gorm:"type:tinyint;default:1;comment:状态 0-禁用 1-正常"`
+	Status      int8      `json:"status" gorm:"type:smallint;default:1;comment:状态 0-禁用 1-正常"`
 	Sort        int       `json:"sort" gorm:"default:0;comment:排序"`
 	IsSystem    bool      `json:"is_system" gorm:"default:false;comment:是否系统角色"`
 	CreatedAt   time.Time `json:"created_at" gorm:"autoCreateTime;comment:创建时间"`

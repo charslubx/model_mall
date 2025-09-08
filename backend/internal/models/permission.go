@@ -16,7 +16,7 @@ type Permission struct {
 	Icon        string    `json:"icon" gorm:"type:varchar(100);comment:图标"`
 	Component   string    `json:"component" gorm:"type:varchar(255);comment:组件路径"`
 	Sort        int       `json:"sort" gorm:"default:0;comment:排序"`
-	Status      int8      `json:"status" gorm:"type:tinyint;default:1;comment:状态 0-禁用 1-正常"`
+	Status      int8      `json:"status" gorm:"type:smallint;default:1;comment:状态 0-禁用 1-正常"`
 	IsSystem    bool      `json:"is_system" gorm:"default:false;comment:是否系统权限"`
 	Description string    `json:"description" gorm:"type:varchar(255);comment:权限描述"`
 	CreatedAt   time.Time `json:"created_at" gorm:"autoCreateTime;comment:创建时间"`

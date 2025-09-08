@@ -13,9 +13,9 @@ type User struct {
 	Password    string    `json:"-" gorm:"type:varchar(255);not null;comment:密码哈希"`
 	Avatar      string    `json:"avatar" gorm:"type:varchar(255);comment:头像URL"`
 	Nickname    string    `json:"nickname" gorm:"type:varchar(50);comment:昵称"`
-	Gender      int8      `json:"gender" gorm:"type:tinyint;default:0;comment:性别 0-未知 1-男 2-女"`
+	Gender      int8      `json:"gender" gorm:"type:smallint;default:0;comment:性别 0-未知 1-男 2-女"`
 	Birthday    *time.Time `json:"birthday" gorm:"type:date;comment:生日"`
-	Status      int8      `json:"status" gorm:"type:tinyint;default:1;comment:状态 0-禁用 1-正常"`
+	Status      int8      `json:"status" gorm:"type:smallint;default:1;comment:状态 0-禁用 1-正常"`
 	RoleID      int64     `json:"role_id" gorm:"not null;comment:角色ID"`
 	LastLoginAt *time.Time `json:"last_login_at" gorm:"comment:最后登录时间"`
 	LastLoginIP string    `json:"last_login_ip" gorm:"type:varchar(45);comment:最后登录IP"`
