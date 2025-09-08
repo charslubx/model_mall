@@ -36,7 +36,7 @@ func NewRedisHelper(ctx context.Context, conf *config.Config, logger *LogHelper)
 
 	// 测试连接 - 使用 go-zero 的上下文感知方法
 	status := rds.PingCtx(ctx)
-	if status != true {
+	if !status {
 		logger.Debug("Failed to connect to redis")
 		// 注意：如果 MustNewRedis 失败会 panic，这里主要是检查 Ping
 		return nil, fmt.Errorf("failed to connect to redis")
