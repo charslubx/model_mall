@@ -4,6 +4,7 @@
 package handler
 
 import (
+	"net/http"
 	"model_mall_backend/backend/internal/middleware"
 	"model_mall_backend/backend/internal/svc"
 
@@ -17,27 +18,56 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 
 	// 公开路由（不需要认证）
 	server.AddRoutes([]rest.Route{
-		//{
-		//	Method:  http.MethodPost,
-		//	Path:    "/api/login",
-		//	Handler: LoginHandler(serverCtx),
-		//},
-		//{
-		//	Method:  http.MethodPost,
-		//	Path:    "/api/register",
-		//	Handler: RegisterHandler(serverCtx),
-		//},
+		// {
+		// 	Method:  http.MethodPost,
+		// 	Path:    "/api/login",
+		// 	Handler: LoginHandler(serverCtx),
+		// },
+		// 健康检查接口
+		{
+			Method:  http.MethodGet,
+			Path:    "/api/health",
+			Handler: func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusOK)
+				w.Write([]byte("OK"))
+			},
+		},
 	})
 
 	// 需要认证的路由
 	server.AddRoutes(
 		[]rest.Route{
-			//{
-			//	Method:  http.MethodGet,
-			//	Path:    "/api/user/info",
-			//	Handler: GetUserInfoHandler(serverCtx),
-			//},
-			// 其他需要认证的路由...
+			// 图片分类相关接口
+			{
+				Method:  http.MethodPost,
+				Path:    "/api/classify/image",
+				Handler: ClassifyImageHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/api/classify/result",
+				Handler: GetClassificationHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/api/classify/my",
+				Handler: GetUserClassificationsHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/api/classify/statistics",
+				Handler: GetStatisticsHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodDelete,
+				Path:    "/api/classify/result",
+				Handler: DeleteClassificationHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/api/classify/search",
+				Handler: SearchClassificationsHandler(serverCtx),
+			},
 		}, rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
 	)
 }

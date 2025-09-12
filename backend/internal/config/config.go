@@ -29,4 +29,13 @@ type Config struct {
 		Password string
 		Database string
 	}
+	ModelService struct {
+		Endpoint string
+		Timeout  int
+	}
+	Upload struct {
+		Path         string
+		MaxSize      int64
+		AllowedTypes []string
+	}
 }

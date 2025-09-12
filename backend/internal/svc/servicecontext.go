@@ -6,6 +6,7 @@ import (
 
 	"model_mall_backend/backend/internal/config"
 	"model_mall_backend/backend/internal/repository"
+	"gorm.io/gorm"
 )
 
 type ServiceContext struct {
@@ -16,6 +17,7 @@ type ServiceContext struct {
 	RedisHelper *RedisHelper
 	OrmHelper   *OrmHelper
 	Repos       *repository.Repositories
+	DB          *gorm.DB
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
@@ -55,6 +57,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		MySqlHelper: mysqlHelper,
 		RedisHelper: redisHelper,
 		OrmHelper:   ormHelper,
+		DB:          ormHelper.GetDB(),
 	}
 
 	// 初始化仓库层
