@@ -2,33 +2,31 @@ package repository
 
 import (
 	"context"
-	"fmt"
 
 	"model_mall_backend/backend/internal/models"
-	"model_mall_backend/backend/internal/svc"
 
 	"gorm.io/gorm"
 )
 
 type UserRepository struct {
-	svcCtx *svc.ServiceContext
+	db *gorm.DB
 }
 
-func NewUserRepository(svcCtx *svc.ServiceContext) *UserRepository {
+func NewUserRepository(db *gorm.DB) *UserRepository {
 	return &UserRepository{
-		svcCtx: svcCtx,
+		db: db,
 	}
 }
 
 // Create 创建用户
 func (r *UserRepository) Create(ctx context.Context, user *models.User) error {
-	return r.svcCtx.OrmHelper.GetDB().WithContext(ctx).Create(user).Error
+	return r.db.WithContext(ctx).Create(user).Error
 }
 
 // GetByID 根据ID获取用户
 func (r *UserRepository) GetByID(ctx context.Context, id int64) (*models.User, error) {
 	var user models.User
-	err := r.svcCtx.OrmHelper.GetDB().WithContext(ctx).
+	err := r.db.WithContext(ctx).
 		Preload("Role").
 		Preload("Role.Permissions").
 		First(&user, id).Error
@@ -41,7 +39,7 @@ func (r *UserRepository) GetByID(ctx context.Context, id int64) (*models.User, e
 // GetByUsername 根据用户名获取用户
 func (r *UserRepository) GetByUsername(ctx context.Context, username string) (*models.User, error) {
 	var user models.User
-	err := r.svcCtx.OrmHelper.GetDB().WithContext(ctx).
+	err := r.db.WithContext(ctx).
 		Preload("Role").
 		Preload("Role.Permissions").
 		Where("username = ?", username).
@@ -55,7 +53,7 @@ func (r *UserRepository) GetByUsername(ctx context.Context, username string) (*m
 // GetByEmail 根据邮箱获取用户
 func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*models.User, error) {
 	var user models.User
-	err := r.svcCtx.OrmHelper.GetDB().WithContext(ctx).
+	err := r.db.WithContext(ctx).
 		Preload("Role").
 		Where("email = ?", email).
 		First(&user).Error
@@ -67,12 +65,12 @@ func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*models.
 
 // Update 更新用户
 func (r *UserRepository) Update(ctx context.Context, user *models.User) error {
-	return r.svcCtx.OrmHelper.GetDB().WithContext(ctx).Save(user).Error
+	return r.db.WithContext(ctx).Save(user).Error
 }
 
 // UpdateByID 根据ID更新用户
 func (r *UserRepository) UpdateByID(ctx context.Context, id int64, updates map[string]interface{}) error {
-	return r.svcCtx.OrmHelper.GetDB().WithContext(ctx).
+	return r.db.WithContext(ctx).
 		Model(&models.User{}).
 		Where("id = ?", id).
 		Updates(updates).Error
@@ -80,12 +78,12 @@ func (r *UserRepository) UpdateByID(ctx context.Context, id int64, updates map[s
 
 // Delete 删除用户
 func (r *UserRepository) Delete(ctx context.Context, id int64) error {
-	return r.svcCtx.OrmHelper.GetDB().WithContext(ctx).Delete(&models.User{}, id).Error
+	return r.db.WithContext(ctx).Delete(&models.User{}, id).Error
 }
 
 // List 获取用户列表
 func (r *UserRepository) List(ctx context.Context, req *models.UserListReq) ([]*models.User, int64, error) {
-	db := r.svcCtx.OrmHelper.GetDB().WithContext(ctx).Model(&models.User{})
+	db := r.db.WithContext(ctx).Model(&models.User{})
 
 	// 构建查询条件
 	if req.Keyword != "" {
@@ -128,7 +126,7 @@ func (r *UserRepository) List(ctx context.Context, req *models.UserListReq) ([]*
 
 // ExistsByUsername 检查用户名是否存在
 func (r *UserRepository) ExistsByUsername(ctx context.Context, username string, excludeID ...int64) (bool, error) {
-	db := r.svcCtx.OrmHelper.GetDB().WithContext(ctx).Model(&models.User{})
+	db := r.db.WithContext(ctx).Model(&models.User{})
 	db = db.Where("username = ?", username)
 	
 	if len(excludeID) > 0 && excludeID[0] > 0 {
@@ -142,7 +140,7 @@ func (r *UserRepository) ExistsByUsername(ctx context.Context, username string, 
 
 // ExistsByEmail 检查邮箱是否存在
 func (r *UserRepository) ExistsByEmail(ctx context.Context, email string, excludeID ...int64) (bool, error) {
-	db := r.svcCtx.OrmHelper.GetDB().WithContext(ctx).Model(&models.User{})
+	db := r.db.WithContext(ctx).Model(&models.User{})
 	db = db.Where("email = ?", email)
 	
 	if len(excludeID) > 0 && excludeID[0] > 0 {
@@ -160,7 +158,7 @@ func (r *UserRepository) ExistsByPhone(ctx context.Context, phone string, exclud
 		return false, nil
 	}
 
-	db := r.svcCtx.OrmHelper.GetDB().WithContext(ctx).Model(&models.User{})
+	db := r.db.WithContext(ctx).Model(&models.User{})
 	db = db.Where("phone = ?", phone)
 	
 	if len(excludeID) > 0 && excludeID[0] > 0 {
@@ -174,7 +172,7 @@ func (r *UserRepository) ExistsByPhone(ctx context.Context, phone string, exclud
 
 // UpdateLastLogin 更新最后登录信息
 func (r *UserRepository) UpdateLastLogin(ctx context.Context, userID int64, ip string) error {
-	return r.svcCtx.OrmHelper.GetDB().WithContext(ctx).
+	return r.db.WithContext(ctx).
 		Model(&models.User{}).
 		Where("id = ?", userID).
 		Updates(map[string]interface{}{

@@ -15,12 +15,7 @@ type ServiceContext struct {
 	MySqlHelper *MySqlHelper
 	RedisHelper *RedisHelper
 	OrmHelper   *OrmHelper
-	
-	// 仓库层
-	UserRepo           *repository.UserRepository
-	RoleRepo           *repository.RoleRepository
-	PermissionRepo     *repository.PermissionRepository
-	RolePermissionRepo *repository.RolePermissionRepository
+	Repos       *repository.Repositories
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
@@ -63,10 +58,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	}
 
 	// 初始化仓库层
-	svcCtx.UserRepo = repository.NewUserRepository(svcCtx)
-	svcCtx.RoleRepo = repository.NewRoleRepository(svcCtx)
-	svcCtx.PermissionRepo = repository.NewPermissionRepository(svcCtx)
-	svcCtx.RolePermissionRepo = repository.NewRolePermissionRepository(svcCtx)
+	svcCtx.Repos = repository.NewRepositories(ormHelper.GetDB())
 
 	return svcCtx
 }
