@@ -5,28 +5,29 @@ import (
 	"fmt"
 
 	"model_mall_backend/backend/internal/models"
-	"model_mall_backend/backend/internal/svc"
+	
+	"gorm.io/gorm"
 )
 
 type RoleRepository struct {
-	svcCtx *svc.ServiceContext
+	db *gorm.DB
 }
 
-func NewRoleRepository(svcCtx *svc.ServiceContext) *RoleRepository {
+func NewRoleRepository(db *gorm.DB) *RoleRepository {
 	return &RoleRepository{
-		svcCtx: svcCtx,
+		db: db,
 	}
 }
 
 // Create 创建角色
 func (r *RoleRepository) Create(ctx context.Context, role *models.Role) error {
-	return r.svcCtx.OrmHelper.GetDB().WithContext(ctx).Create(role).Error
+	return r.db.WithContext(ctx).Create(role).Error
 }
 
 // GetByID 根据ID获取角色
 func (r *RoleRepository) GetByID(ctx context.Context, id int64) (*models.Role, error) {
 	var role models.Role
-	err := r.svcCtx.OrmHelper.GetDB().WithContext(ctx).
+	err := r.db.WithContext(ctx).
 		Preload("Permissions").
 		First(&role, id).Error
 	if err != nil {
@@ -38,7 +39,7 @@ func (r *RoleRepository) GetByID(ctx context.Context, id int64) (*models.Role, e
 // GetByCode 根据代码获取角色
 func (r *RoleRepository) GetByCode(ctx context.Context, code string) (*models.Role, error) {
 	var role models.Role
-	err := r.svcCtx.OrmHelper.GetDB().WithContext(ctx).
+	err := r.db.WithContext(ctx).
 		Preload("Permissions").
 		Where("code = ?", code).
 		First(&role).Error
@@ -50,12 +51,12 @@ func (r *RoleRepository) GetByCode(ctx context.Context, code string) (*models.Ro
 
 // Update 更新角色
 func (r *RoleRepository) Update(ctx context.Context, role *models.Role) error {
-	return r.svcCtx.OrmHelper.GetDB().WithContext(ctx).Save(role).Error
+	return r.db.WithContext(ctx).Save(role).Error
 }
 
 // UpdateByID 根据ID更新角色
 func (r *RoleRepository) UpdateByID(ctx context.Context, id int64, updates map[string]interface{}) error {
-	return r.svcCtx.OrmHelper.GetDB().WithContext(ctx).
+	return r.db.WithContext(ctx).
 		Model(&models.Role{}).
 		Where("id = ?", id).
 		Updates(updates).Error
@@ -65,7 +66,7 @@ func (r *RoleRepository) UpdateByID(ctx context.Context, id int64, updates map[s
 func (r *RoleRepository) Delete(ctx context.Context, id int64) error {
 	// 检查是否为系统角色
 	var role models.Role
-	if err := r.svcCtx.OrmHelper.GetDB().WithContext(ctx).First(&role, id).Error; err != nil {
+	if err := r.db.WithContext(ctx).First(&role, id).Error; err != nil {
 		return err
 	}
 	if role.IsSystem {
@@ -74,7 +75,7 @@ func (r *RoleRepository) Delete(ctx context.Context, id int64) error {
 
 	// 检查是否有用户使用该角色
 	var userCount int64
-	if err := r.svcCtx.OrmHelper.GetDB().WithContext(ctx).
+	if err := r.db.WithContext(ctx).
 		Model(&models.User{}).
 		Where("role_id = ?", id).
 		Count(&userCount).Error; err != nil {
@@ -84,12 +85,12 @@ func (r *RoleRepository) Delete(ctx context.Context, id int64) error {
 		return fmt.Errorf("该角色已被 %d 个用户使用，无法删除", userCount)
 	}
 
-	return r.svcCtx.OrmHelper.GetDB().WithContext(ctx).Delete(&models.Role{}, id).Error
+	return r.db.WithContext(ctx).Delete(&models.Role{}, id).Error
 }
 
 // List 获取角色列表
 func (r *RoleRepository) List(ctx context.Context, req *models.RoleListReq) ([]*models.Role, int64, error) {
-	db := r.svcCtx.OrmHelper.GetDB().WithContext(ctx).Model(&models.Role{})
+	db := r.db.WithContext(ctx).Model(&models.Role{})
 
 	// 构建查询条件
 	if req.Keyword != "" {
@@ -130,7 +131,7 @@ func (r *RoleRepository) List(ctx context.Context, req *models.RoleListReq) ([]*
 // GetAll 获取所有角色（用于选项列表）
 func (r *RoleRepository) GetAll(ctx context.Context) ([]*models.RoleOption, error) {
 	var roles []*models.RoleOption
-	err := r.svcCtx.OrmHelper.GetDB().WithContext(ctx).
+	err := r.db.WithContext(ctx).
 		Model(&models.Role{}).
 		Select("id, name, code").
 		Where("status = ?", 1).
@@ -141,7 +142,7 @@ func (r *RoleRepository) GetAll(ctx context.Context) ([]*models.RoleOption, erro
 
 // ExistsByName 检查角色名是否存在
 func (r *RoleRepository) ExistsByName(ctx context.Context, name string, excludeID ...int64) (bool, error) {
-	db := r.svcCtx.OrmHelper.GetDB().WithContext(ctx).Model(&models.Role{})
+	db := r.db.WithContext(ctx).Model(&models.Role{})
 	db = db.Where("name = ?", name)
 	
 	if len(excludeID) > 0 && excludeID[0] > 0 {
@@ -155,7 +156,7 @@ func (r *RoleRepository) ExistsByName(ctx context.Context, name string, excludeI
 
 // ExistsByCode 检查角色代码是否存在
 func (r *RoleRepository) ExistsByCode(ctx context.Context, code string, excludeID ...int64) (bool, error) {
-	db := r.svcCtx.OrmHelper.GetDB().WithContext(ctx).Model(&models.Role{})
+	db := r.db.WithContext(ctx).Model(&models.Role{})
 	db = db.Where("code = ?", code)
 	
 	if len(excludeID) > 0 && excludeID[0] > 0 {
