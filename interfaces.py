@@ -113,6 +113,56 @@ class RestAPIInterface(HTTPRequestInterface):
     async def handle_rest_api(self, request: Request) -> Response:
         """处理REST API请求"""
         pass
+    
+    @abstractmethod
+    async def handle_get(self, request: Request) -> Response:
+        """处理GET请求"""
+        pass
+    
+    @abstractmethod
+    async def handle_post(self, request: Request) -> Response:
+        """处理POST请求"""
+        pass
+    
+    @abstractmethod
+    async def handle_put(self, request: Request) -> Response:
+        """处理PUT请求"""
+        pass
+    
+    @abstractmethod
+    async def handle_patch(self, request: Request) -> Response:
+        """处理PATCH请求"""
+        pass
+    
+    @abstractmethod
+    async def handle_delete(self, request: Request) -> Response:
+        """处理DELETE请求"""
+        pass
+    
+    @abstractmethod
+    async def handle_head(self, request: Request) -> Response:
+        """处理HEAD请求"""
+        pass
+    
+    @abstractmethod
+    async def handle_options(self, request: Request) -> Response:
+        """处理OPTIONS请求"""
+        pass
+    
+    @abstractmethod
+    async def validate_request(self, request: Request) -> bool:
+        """验证请求有效性"""
+        pass
+    
+    @abstractmethod
+    async def authenticate_request(self, request: Request) -> Dict[str, Any]:
+        """请求认证"""
+        pass
+    
+    @abstractmethod
+    async def authorize_request(self, request: Request, user_info: Dict[str, Any]) -> bool:
+        """请求授权"""
+        pass
 
 
 class FileHandlerInterface(HTTPRequestInterface):
