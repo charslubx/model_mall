@@ -143,6 +143,13 @@ class RestAPIHandler(RestAPIInterface):
     
     def __init__(self):
         self.session: Optional[aiohttp.ClientSession] = None
+        self.api_routes = {
+            "/api/users": self._handle_users_api,
+            "/api/data": self._handle_data_api,
+            "/api/products": self._handle_products_api,
+            "/api/orders": self._handle_orders_api,
+            "/api/auth": self._handle_auth_api
+        }
     
     async def _get_session(self) -> aiohttp.ClientSession:
         """获取或创建HTTP会话"""
@@ -159,55 +166,500 @@ class RestAPIHandler(RestAPIInterface):
         try:
             logger.info(f"处理REST API请求: {request.method} {request.url}")
             
-            path = str(request.url.path)
+            # 请求验证
+            if not await self.validate_request(request):
+                raise HTTPException(status_code=400, detail="请求验证失败")
             
-            # 模拟不同的API端点
-            if path.startswith('/api/users'):
-                return await self._handle_users_api(request)
-            elif path.startswith('/api/data'):
-                return await self._handle_data_api(request)
+            # 认证
+            user_info = await self.authenticate_request(request)
+            
+            # 授权
+            if not await self.authorize_request(request, user_info):
+                raise HTTPException(status_code=403, detail="权限不足")
+            
+            # 根据HTTP方法分发请求
+            method = request.method.upper()
+            if method == "GET":
+                return await self.handle_get(request)
+            elif method == "POST":
+                return await self.handle_post(request)
+            elif method == "PUT":
+                return await self.handle_put(request)
+            elif method == "PATCH":
+                return await self.handle_patch(request)
+            elif method == "DELETE":
+                return await self.handle_delete(request)
+            elif method == "HEAD":
+                return await self.handle_head(request)
+            elif method == "OPTIONS":
+                return await self.handle_options(request)
             else:
-                return JSONResponse({
-                    "status": "success",
-                    "message": "Generic REST API response",
-                    "endpoint": path,
-                    "method": request.method
-                })
+                raise HTTPException(status_code=405, detail=f"不支持的HTTP方法: {method}")
                 
+        except HTTPException:
+            raise
         except Exception as e:
             logger.error(f"REST API处理错误: {str(e)}")
             raise HTTPException(status_code=500, detail=f"REST API处理错误: {str(e)}")
     
+    async def handle_get(self, request: Request) -> Response:
+        """处理GET请求"""
+        path = str(request.url.path)
+        logger.info(f"处理GET请求: {path}")
+        
+        # 根据路径分发到具体处理器
+        for route, handler in self.api_routes.items():
+            if path.startswith(route):
+                return await handler(request)
+        
+        # 通用GET处理
+        return JSONResponse({
+            "status": "success",
+            "method": "GET",
+            "path": path,
+            "query_params": dict(request.query_params),
+            "message": "GET请求处理成功"
+        })
+    
+    async def handle_post(self, request: Request) -> Response:
+        """处理POST请求"""
+        path = str(request.url.path)
+        logger.info(f"处理POST请求: {path}")
+        
+        # 获取请求体
+        body = await request.body()
+        try:
+            request_data = json.loads(body) if body else {}
+        except json.JSONDecodeError:
+            request_data = {"raw_body": body.decode('utf-8', errors='ignore')}
+        
+        # 根据路径分发到具体处理器
+        for route, handler in self.api_routes.items():
+            if path.startswith(route):
+                return await handler(request)
+        
+        # 通用POST处理
+        return JSONResponse({
+            "status": "created",
+            "method": "POST",
+            "path": path,
+            "data": request_data,
+            "message": "POST请求处理成功"
+        }, status_code=201)
+    
+    async def handle_put(self, request: Request) -> Response:
+        """处理PUT请求"""
+        path = str(request.url.path)
+        logger.info(f"处理PUT请求: {path}")
+        
+        # 获取请求体
+        body = await request.body()
+        try:
+            request_data = json.loads(body) if body else {}
+        except json.JSONDecodeError:
+            request_data = {"raw_body": body.decode('utf-8', errors='ignore')}
+        
+        # 根据路径分发到具体处理器
+        for route, handler in self.api_routes.items():
+            if path.startswith(route):
+                return await handler(request)
+        
+        return JSONResponse({
+            "status": "updated",
+            "method": "PUT",
+            "path": path,
+            "data": request_data,
+            "message": "PUT请求处理成功"
+        })
+    
+    async def handle_patch(self, request: Request) -> Response:
+        """处理PATCH请求"""
+        path = str(request.url.path)
+        logger.info(f"处理PATCH请求: {path}")
+        
+        # 获取请求体
+        body = await request.body()
+        try:
+            request_data = json.loads(body) if body else {}
+        except json.JSONDecodeError:
+            request_data = {"raw_body": body.decode('utf-8', errors='ignore')}
+        
+        # 根据路径分发到具体处理器
+        for route, handler in self.api_routes.items():
+            if path.startswith(route):
+                return await handler(request)
+        
+        return JSONResponse({
+            "status": "patched",
+            "method": "PATCH",
+            "path": path,
+            "data": request_data,
+            "message": "PATCH请求处理成功"
+        })
+    
+    async def handle_delete(self, request: Request) -> Response:
+        """处理DELETE请求"""
+        path = str(request.url.path)
+        logger.info(f"处理DELETE请求: {path}")
+        
+        # 根据路径分发到具体处理器
+        for route, handler in self.api_routes.items():
+            if path.startswith(route):
+                return await handler(request)
+        
+        return JSONResponse({
+            "status": "deleted",
+            "method": "DELETE",
+            "path": path,
+            "message": "DELETE请求处理成功"
+        })
+    
+    async def handle_head(self, request: Request) -> Response:
+        """处理HEAD请求"""
+        path = str(request.url.path)
+        logger.info(f"处理HEAD请求: {path}")
+        
+        # HEAD请求只返回头部信息，不返回内容
+        response = Response(status_code=200)
+        response.headers["Content-Type"] = "application/json"
+        response.headers["X-API-Version"] = "1.0.0"
+        response.headers["X-Path"] = path
+        return response
+    
+    async def handle_options(self, request: Request) -> Response:
+        """处理OPTIONS请求"""
+        path = str(request.url.path)
+        logger.info(f"处理OPTIONS请求: {path}")
+        
+        # 返回支持的方法
+        response = Response(status_code=200)
+        response.headers["Allow"] = "GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With"
+        return response
+    
+    async def validate_request(self, request: Request) -> bool:
+        """验证请求有效性"""
+        try:
+            # 基本验证逻辑
+            path = str(request.url.path)
+            
+            # 检查路径是否为API路径
+            if not path.startswith('/api/'):
+                return False
+            
+            # 检查Content-Type（对于有请求体的方法）
+            if request.method in ["POST", "PUT", "PATCH"]:
+                content_type = request.headers.get("Content-Type", "")
+                if not any(ct in content_type for ct in ["application/json", "application/x-www-form-urlencoded", "multipart/form-data"]):
+                    logger.warning(f"不支持的Content-Type: {content_type}")
+                    # 暂时允许，只记录警告
+            
+            return True
+        except Exception as e:
+            logger.error(f"请求验证失败: {str(e)}")
+            return False
+    
+    async def authenticate_request(self, request: Request) -> Dict[str, Any]:
+        """请求认证"""
+        try:
+            # 简单的认证逻辑
+            auth_header = request.headers.get("Authorization", "")
+            
+            if auth_header.startswith("Bearer "):
+                token = auth_header[7:]  # 移除 "Bearer " 前缀
+                # 这里应该验证token的有效性
+                # 简化示例：假设所有token都有效
+                return {
+                    "user_id": "user123",
+                    "username": "test_user",
+                    "roles": ["user"],
+                    "token": token
+                }
+            elif auth_header.startswith("Basic "):
+                # 基本认证处理
+                return {
+                    "user_id": "guest",
+                    "username": "guest",
+                    "roles": ["guest"],
+                    "auth_type": "basic"
+                }
+            else:
+                # 无认证信息，返回匿名用户
+                return {
+                    "user_id": "anonymous",
+                    "username": "anonymous",
+                    "roles": ["anonymous"],
+                    "auth_type": "none"
+                }
+        except Exception as e:
+            logger.error(f"认证失败: {str(e)}")
+            return {
+                "user_id": "error",
+                "username": "error",
+                "roles": [],
+                "error": str(e)
+            }
+    
+    async def authorize_request(self, request: Request, user_info: Dict[str, Any]) -> bool:
+        """请求授权"""
+        try:
+            path = str(request.url.path)
+            method = request.method.upper()
+            user_roles = user_info.get("roles", [])
+            
+            # 简单的授权规则
+            # 公开端点
+            public_endpoints = ["/api/auth", "/api/data"]
+            if any(path.startswith(endpoint) for endpoint in public_endpoints):
+                return True
+            
+            # 需要认证的端点
+            if "anonymous" in user_roles:
+                # 匿名用户只能访问公开端点
+                return False
+            
+            # 管理员可以访问所有端点
+            if "admin" in user_roles:
+                return True
+            
+            # 普通用户的权限
+            if "user" in user_roles:
+                # 用户可以GET大部分资源
+                if method == "GET":
+                    return True
+                # 用户可以POST到某些端点
+                if method == "POST" and path.startswith("/api/orders"):
+                    return True
+                # 用户可以修改自己的信息
+                if method in ["PUT", "PATCH"] and "/users/" in path:
+                    # 这里应该检查用户是否修改自己的信息
+                    return True
+            
+            # 默认拒绝
+            logger.warning(f"授权失败: 用户 {user_info.get('username')} 尝试访问 {method} {path}")
+            return True  # 暂时允许所有请求，在实际项目中应该更严格
+            
+        except Exception as e:
+            logger.error(f"授权检查失败: {str(e)}")
+            return False
+    
     async def _handle_users_api(self, request: Request) -> Response:
         """处理用户相关API"""
-        if request.method == "GET":
-            return JSONResponse({
-                "users": [
-                    {"id": 1, "name": "用户1", "email": "user1@example.com"},
-                    {"id": 2, "name": "用户2", "email": "user2@example.com"}
-                ]
-            })
-        elif request.method == "POST":
+        method = request.method.upper()
+        path = str(request.url.path)
+        
+        if method == "GET":
+            # 获取用户列表或特定用户
+            if path == "/api/users":
+                return JSONResponse({
+                    "users": [
+                        {"id": 1, "name": "用户1", "email": "user1@example.com", "status": "active"},
+                        {"id": 2, "name": "用户2", "email": "user2@example.com", "status": "active"},
+                        {"id": 3, "name": "用户3", "email": "user3@example.com", "status": "inactive"}
+                    ],
+                    "total": 3,
+                    "page": 1,
+                    "limit": 10
+                })
+            else:
+                # 获取特定用户
+                user_id = path.split("/")[-1]
+                return JSONResponse({
+                    "id": user_id,
+                    "name": f"用户{user_id}",
+                    "email": f"user{user_id}@example.com",
+                    "status": "active",
+                    "created_at": "2025-09-22T00:00:00Z"
+                })
+        
+        elif method == "POST":
             body = await request.body()
             try:
                 user_data = json.loads(body) if body else {}
                 return JSONResponse({
                     "status": "created",
-                    "user": user_data,
-                    "id": 123
+                    "user": {
+                        "id": 123,
+                        "name": user_data.get("name", "新用户"),
+                        "email": user_data.get("email", "new@example.com"),
+                        "status": "active"
+                    },
+                    "message": "用户创建成功"
+                }, status_code=201)
+            except json.JSONDecodeError:
+                raise HTTPException(status_code=400, detail="Invalid JSON")
+        
+        elif method == "PUT":
+            body = await request.body()
+            user_id = path.split("/")[-1]
+            try:
+                user_data = json.loads(body) if body else {}
+                return JSONResponse({
+                    "status": "updated",
+                    "user": {
+                        "id": user_id,
+                        "name": user_data.get("name", f"用户{user_id}"),
+                        "email": user_data.get("email", f"user{user_id}@example.com"),
+                        "status": user_data.get("status", "active")
+                    },
+                    "message": "用户更新成功"
                 })
             except json.JSONDecodeError:
                 raise HTTPException(status_code=400, detail="Invalid JSON")
+        
+        elif method == "DELETE":
+            user_id = path.split("/")[-1]
+            return JSONResponse({
+                "status": "deleted",
+                "user_id": user_id,
+                "message": "用户删除成功"
+            })
+        
+        return JSONResponse({"error": "不支持的操作"}, status_code=405)
     
     async def _handle_data_api(self, request: Request) -> Response:
         """处理数据相关API"""
-        return JSONResponse({
-            "data": {
-                "timestamp": "2025-09-22T00:00:00Z",
-                "values": [1, 2, 3, 4, 5],
-                "status": "active"
-            }
-        })
+        method = request.method.upper()
+        
+        if method == "GET":
+            return JSONResponse({
+                "data": {
+                    "timestamp": "2025-09-22T00:00:00Z",
+                    "values": [1, 2, 3, 4, 5],
+                    "status": "active",
+                    "metrics": {
+                        "cpu_usage": 45.2,
+                        "memory_usage": 67.8,
+                        "disk_usage": 23.1
+                    }
+                },
+                "meta": {
+                    "version": "1.0.0",
+                    "last_updated": "2025-09-22T00:00:00Z"
+                }
+            })
+        
+        elif method == "POST":
+            body = await request.body()
+            try:
+                data = json.loads(body) if body else {}
+                return JSONResponse({
+                    "status": "processed",
+                    "received_data": data,
+                    "processed_at": "2025-09-22T00:00:00Z",
+                    "result_id": "data_123"
+                }, status_code=201)
+            except json.JSONDecodeError:
+                raise HTTPException(status_code=400, detail="Invalid JSON")
+        
+        return JSONResponse({"error": "不支持的操作"}, status_code=405)
+    
+    async def _handle_products_api(self, request: Request) -> Response:
+        """处理产品相关API"""
+        method = request.method.upper()
+        path = str(request.url.path)
+        
+        if method == "GET":
+            return JSONResponse({
+                "products": [
+                    {"id": 1, "name": "产品A", "price": 99.99, "category": "electronics"},
+                    {"id": 2, "name": "产品B", "price": 149.99, "category": "books"},
+                    {"id": 3, "name": "产品C", "price": 79.99, "category": "clothing"}
+                ],
+                "total": 3,
+                "categories": ["electronics", "books", "clothing"]
+            })
+        
+        elif method == "POST":
+            body = await request.body()
+            try:
+                product_data = json.loads(body) if body else {}
+                return JSONResponse({
+                    "status": "created",
+                    "product": {
+                        "id": 123,
+                        "name": product_data.get("name", "新产品"),
+                        "price": product_data.get("price", 0.0),
+                        "category": product_data.get("category", "uncategorized")
+                    }
+                }, status_code=201)
+            except json.JSONDecodeError:
+                raise HTTPException(status_code=400, detail="Invalid JSON")
+        
+        return JSONResponse({"error": "不支持的操作"}, status_code=405)
+    
+    async def _handle_orders_api(self, request: Request) -> Response:
+        """处理订单相关API"""
+        method = request.method.upper()
+        
+        if method == "GET":
+            return JSONResponse({
+                "orders": [
+                    {"id": 1, "user_id": 1, "total": 199.98, "status": "completed"},
+                    {"id": 2, "user_id": 2, "total": 79.99, "status": "pending"},
+                    {"id": 3, "user_id": 1, "total": 149.99, "status": "shipped"}
+                ],
+                "total": 3
+            })
+        
+        elif method == "POST":
+            body = await request.body()
+            try:
+                order_data = json.loads(body) if body else {}
+                return JSONResponse({
+                    "status": "created",
+                    "order": {
+                        "id": 456,
+                        "user_id": order_data.get("user_id", 1),
+                        "items": order_data.get("items", []),
+                        "total": order_data.get("total", 0.0),
+                        "status": "pending"
+                    }
+                }, status_code=201)
+            except json.JSONDecodeError:
+                raise HTTPException(status_code=400, detail="Invalid JSON")
+        
+        return JSONResponse({"error": "不支持的操作"}, status_code=405)
+    
+    async def _handle_auth_api(self, request: Request) -> Response:
+        """处理认证相关API"""
+        method = request.method.upper()
+        path = str(request.url.path)
+        
+        if method == "POST":
+            if path.endswith("/login"):
+                body = await request.body()
+                try:
+                    credentials = json.loads(body) if body else {}
+                    return JSONResponse({
+                        "status": "success",
+                        "token": "mock_jwt_token_123",
+                        "user": {
+                            "id": 1,
+                            "username": credentials.get("username", "user"),
+                            "email": "user@example.com",
+                            "roles": ["user"]
+                        },
+                        "expires_in": 3600
+                    })
+                except json.JSONDecodeError:
+                    raise HTTPException(status_code=400, detail="Invalid JSON")
+            
+            elif path.endswith("/logout"):
+                return JSONResponse({
+                    "status": "success",
+                    "message": "登出成功"
+                })
+            
+            elif path.endswith("/refresh"):
+                return JSONResponse({
+                    "status": "success",
+                    "token": "new_mock_jwt_token_456",
+                    "expires_in": 3600
+                })
+        
+        return JSONResponse({"error": "不支持的操作"}, status_code=405)
 
 
 class FileHandler(FileHandlerInterface):
