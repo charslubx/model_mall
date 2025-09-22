@@ -36,7 +36,7 @@ class GatewayInterface(ABC):
         pass
     
     @abstractmethod
-    def determine_request_type(self, request: Request) -> RequestType:
+    async def determine_request_type(self, request: Request) -> RequestType:
         """
         确定请求类型
         
@@ -66,7 +66,7 @@ class RequestHandlerInterface(ABC):
         pass
     
     @abstractmethod
-    def can_handle(self, request: Request) -> bool:
+    async def can_handle(self, request: Request) -> bool:
         """
         判断是否能处理该请求
         

@@ -157,7 +157,7 @@ async def gateway_info():
     return {
         "gateway": "FastAPI Gateway System",
         "version": "1.0.0",
-        "handlers": gateway.get_handler_info(),
+        "handlers": await gateway.get_handler_info(),
         "endpoints": {
             "health": "/gateway/health",
             "info": "/gateway/info",

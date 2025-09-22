@@ -12,7 +12,7 @@ from interfaces import (
     RequestType
 )
 import asyncio
-import aiohttp
+import httpx
 import logging
 
 # 配置日志
@@ -24,15 +24,15 @@ class XHRHandler(XHRHandlerInterface):
     """XHR请求处理器实现"""
     
     def __init__(self):
-        self.session: Optional[aiohttp.ClientSession] = None
+        self.client: Optional[httpx.AsyncClient] = None
     
-    async def _get_session(self) -> aiohttp.ClientSession:
-        """获取或创建HTTP会话"""
-        if self.session is None or self.session.closed:
-            self.session = aiohttp.ClientSession()
-        return self.session
+    async def _get_client(self) -> httpx.AsyncClient:
+        """获取或创建HTTP客户端"""
+        if self.client is None or self.client.is_closed:
+            self.client = httpx.AsyncClient()
+        return self.client
     
-    def can_handle(self, request: Request) -> bool:
+    async def can_handle(self, request: Request) -> bool:
         """判断是否为XHR请求"""
         xhr_header = request.headers.get("X-Requested-With", "").lower()
         content_type = request.headers.get("Content-Type", "").lower()
@@ -62,7 +62,7 @@ class XHRHandler(XHRHandlerInterface):
             
             # 这里可以添加请求转发逻辑
             # 示例：转发到后端服务
-            session = await self._get_session()
+            client = await self._get_client()
             
             # 模拟处理逻辑
             if request.method == "GET":
@@ -96,7 +96,7 @@ class XHRHandler(XHRHandlerInterface):
 class NonXHRHandler(NonXHRHandlerInterface):
     """非XHR请求处理器实现"""
     
-    def can_handle(self, request: Request) -> bool:
+    async def can_handle(self, request: Request) -> bool:
         """判断是否为非XHR请求"""
         xhr_header = request.headers.get("X-Requested-With", "").lower()
         content_type = request.headers.get("Content-Type", "").lower()
@@ -142,7 +142,7 @@ class RestAPIHandler(RestAPIInterface):
     """REST API处理器实现"""
     
     def __init__(self):
-        self.session: Optional[aiohttp.ClientSession] = None
+        self.client: Optional[httpx.AsyncClient] = None
         self.api_routes = {
             "/api/users": self._handle_users_api,
             "/api/data": self._handle_data_api,
@@ -151,11 +151,11 @@ class RestAPIHandler(RestAPIInterface):
             "/api/auth": self._handle_auth_api
         }
     
-    async def _get_session(self) -> aiohttp.ClientSession:
-        """获取或创建HTTP会话"""
-        if self.session is None or self.session.closed:
-            self.session = aiohttp.ClientSession()
-        return self.session
+    async def _get_client(self) -> httpx.AsyncClient:
+        """获取或创建HTTP客户端"""
+        if self.client is None or self.client.is_closed:
+            self.client = httpx.AsyncClient()
+        return self.client
     
     async def process_http_request(self, request: Request) -> Response:
         """处理HTTP请求"""

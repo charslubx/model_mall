@@ -43,7 +43,7 @@ class Gateway(GatewayInterface):
         self.handlers[RequestType.SSE] = self.sse_handler
         self.handlers[RequestType.WEBSOCKET] = self.websocket_handler
     
-    def determine_request_type(self, request: Request) -> RequestType:
+    async def determine_request_type(self, request: Request) -> RequestType:
         """
         确定请求类型
         根据请求的特征判断应该使用哪个处理器
@@ -61,7 +61,7 @@ class Gateway(GatewayInterface):
             return RequestType.WEBSOCKET
         
         # 检查是否为文件请求
-        if self._is_file_request(path):
+        if await self._is_file_request(path):
             return RequestType.FILE
         
         # 检查是否为REST API请求
@@ -69,13 +69,13 @@ class Gateway(GatewayInterface):
             return RequestType.REST_API
         
         # 检查是否为XHR请求
-        if self._is_xhr_request(request):
+        if await self._is_xhr_request(request):
             return RequestType.XHR
         
         # 默认为非XHR请求
         return RequestType.NON_XHR
     
-    def _is_xhr_request(self, request: Request) -> bool:
+    async def _is_xhr_request(self, request: Request) -> bool:
         """判断是否为XHR请求"""
         xhr_header = request.headers.get("X-Requested-With", "").lower()
         content_type = request.headers.get("Content-Type", "").lower()
@@ -86,7 +86,7 @@ class Gateway(GatewayInterface):
             "application/xml" in content_type
         )
     
-    def _is_file_request(self, path: str) -> bool:
+    async def _is_file_request(self, path: str) -> bool:
         """判断是否为文件请求"""
         # 常见的静态文件扩展名
         file_extensions = {
@@ -118,7 +118,7 @@ class Gateway(GatewayInterface):
             logger.info(f"Headers: {dict(request.headers)}")
             
             # 确定请求类型
-            request_type = self.determine_request_type(request)
+            request_type = await self.determine_request_type(request)
             logger.info(f"请求类型: {request_type.value}")
             
             # 获取对应的处理器
@@ -130,7 +130,7 @@ class Gateway(GatewayInterface):
                 )
             
             # 验证处理器是否能处理该请求
-            if hasattr(handler, 'can_handle') and not handler.can_handle(request):
+            if hasattr(handler, 'can_handle') and not await handler.can_handle(request):
                 logger.warning(f"处理器 {type(handler).__name__} 无法处理该请求")
                 # 尝试使用默认处理器
                 handler = self.non_xhr_handler
@@ -157,7 +157,7 @@ class Gateway(GatewayInterface):
                 detail=f"网关内部错误: {str(e)}"
             )
     
-    def get_handler_info(self) -> Dict:
+    async def get_handler_info(self) -> Dict:
         """获取所有处理器的信息"""
         return {
             "handlers": {
