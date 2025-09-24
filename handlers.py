@@ -37,11 +37,11 @@ class XHRHandler(XHRHandlerInterface):
             )
         return self.client
     
-    def _get_backend_url(self, path: str) -> str:
-        """根据路径获取后端服务URL"""
+    def _get_api_backend_url(self, path: str) -> str:
+        """根据路径获取API后端服务URL"""
         # 按路径长度排序，优先匹配更具体的路径
         sorted_services = sorted(
-            self.config.backend_services.items(), 
+            self.config.backend_api_services.items(), 
             key=lambda x: len(x[0]), 
             reverse=True
         )
@@ -50,7 +50,7 @@ class XHRHandler(XHRHandlerInterface):
             if path.startswith(service_path):
                 return backend_url
         
-        return self.config.default_backend
+        return self.config.default_api_backend
     
     async def can_handle(self, request: Request) -> bool:
         """判断是否为XHR请求"""
@@ -73,8 +73,8 @@ class XHRHandler(XHRHandlerInterface):
             path = str(request.url.path)
             logger.info(f"透传XHR请求: {request.method} {path}")
             
-            # 获取后端服务URL
-            backend_url = self._get_backend_url(path)
+            # 获取API后端服务URL
+            backend_url = self._get_api_backend_url(path)
             target_url = f"{backend_url}{path}"
             if request.url.query:
                 target_url += f"?{request.url.query}"
@@ -137,7 +137,7 @@ class XHRHandler(XHRHandlerInterface):
 
 
 class NonXHRHandler(NonXHRHandlerInterface):
-    """非XHR请求处理器实现"""
+    """非XHR请求处理器实现 - 处理页面和静态资源"""
     
     def __init__(self):
         self.client: Optional[httpx.AsyncClient] = None
@@ -152,20 +152,9 @@ class NonXHRHandler(NonXHRHandlerInterface):
             )
         return self.client
     
-    def _get_backend_url(self, path: str) -> str:
-        """根据路径获取后端服务URL"""
-        # 按路径长度排序，优先匹配更具体的路径
-        sorted_services = sorted(
-            self.config.backend_services.items(), 
-            key=lambda x: len(x[0]), 
-            reverse=True
-        )
-        
-        for service_path, backend_url in sorted_services:
-            if path.startswith(service_path):
-                return backend_url
-        
-        return self.config.default_backend
+    def _get_frontend_url(self, path: str) -> str:
+        """获取前端服务URL - 页面和静态资源都转发到前端"""
+        return self.config.frontend_service
     
     async def can_handle(self, request: Request) -> bool:
         """判断是否为非XHR请求"""
@@ -183,18 +172,18 @@ class NonXHRHandler(NonXHRHandlerInterface):
         return await self.handle_non_xhr_request(request)
     
     async def handle_non_xhr_request(self, request: Request) -> Response:
-        """处理非XHR请求的具体逻辑 - 透传到后端服务"""
+        """处理非XHR请求的具体逻辑 - 透传页面和静态资源到前端服务"""
         try:
             path = str(request.url.path)
-            logger.info(f"透传非XHR请求: {request.method} {path}")
+            logger.info(f"透传非XHR请求(页面/静态资源): {request.method} {path}")
             
-            # 获取后端服务URL
-            backend_url = self._get_backend_url(path)
-            target_url = f"{backend_url}{path}"
+            # 获取前端服务URL
+            frontend_url = self._get_frontend_url(path)
+            target_url = f"{frontend_url}{path}"
             if request.url.query:
                 target_url += f"?{request.url.query}"
             
-            logger.info(f"转发到: {target_url}")
+            logger.info(f"转发到前端服务: {target_url}")
             
             # 获取请求数据
             body = await request.body()
@@ -231,53 +220,38 @@ class NonXHRHandler(NonXHRHandlerInterface):
                 )
                 
             except httpx.ConnectError:
-                logger.error(f"无法连接到后端服务: {backend_url}")
-                # 对于页面请求，返回友好的错误页面
-                if not path.startswith('/api/'):
-                    return Response(
-                        content=f"""
-                        <html>
-                        <head><title>服务不可用</title></head>
-                        <body>
-                            <h1>服务暂时不可用</h1>
-                            <p>无法连接到后端服务: {backend_url}</p>
-                            <p>请稍后再试</p>
-                        </body>
-                        </html>
-                        """,
-                        status_code=503,
-                        media_type="text/html"
-                    )
-                else:
-                    return JSONResponse({
-                        "error": "Backend service unavailable",
-                        "message": f"无法连接到后端服务: {backend_url}",
-                        "status": "service_unavailable"
-                    }, status_code=503)
+                logger.error(f"无法连接到前端服务: {frontend_url}")
+                return Response(
+                    content=f"""
+                    <html>
+                    <head><title>前端服务不可用</title></head>
+                    <body>
+                        <h1>前端服务暂时不可用</h1>
+                        <p>无法连接到前端服务: {frontend_url}</p>
+                        <p>请稍后再试或联系管理员</p>
+                    </body>
+                    </html>
+                    """,
+                    status_code=503,
+                    media_type="text/html"
+                )
             
             except httpx.TimeoutException:
-                logger.error(f"后端服务响应超时: {backend_url}")
-                if not path.startswith('/api/'):
-                    return Response(
-                        content=f"""
-                        <html>
-                        <head><title>服务超时</title></head>
-                        <body>
-                            <h1>服务响应超时</h1>
-                            <p>后端服务响应时间过长</p>
-                            <p>请稍后再试</p>
-                        </body>
-                        </html>
-                        """,
-                        status_code=504,
-                        media_type="text/html"
-                    )
-                else:
-                    return JSONResponse({
-                        "error": "Backend service timeout",
-                        "message": "后端服务响应超时",
-                        "status": "timeout"
-                    }, status_code=504)
+                logger.error(f"前端服务响应超时: {frontend_url}")
+                return Response(
+                    content=f"""
+                    <html>
+                    <head><title>服务响应超时</title></head>
+                    <body>
+                        <h1>前端服务响应超时</h1>
+                        <p>前端服务响应时间过长</p>
+                        <p>请稍后再试</p>
+                    </body>
+                    </html>
+                    """,
+                    status_code=504,
+                    media_type="text/html"
+                )
                 
         except Exception as e:
             logger.error(f"非XHR请求处理错误: {str(e)}")
@@ -305,11 +279,11 @@ class RestAPIHandler(RestAPIInterface):
             )
         return self.client
     
-    def _get_backend_url(self, path: str) -> str:
-        """根据路径获取后端服务URL"""
+    def _get_api_backend_url(self, path: str) -> str:
+        """根据路径获取API后端服务URL"""
         # 按路径长度排序，优先匹配更具体的路径
         sorted_services = sorted(
-            self.config.backend_services.items(), 
+            self.config.backend_api_services.items(), 
             key=lambda x: len(x[0]), 
             reverse=True
         )
@@ -318,20 +292,20 @@ class RestAPIHandler(RestAPIInterface):
             if path.startswith(service_path):
                 return backend_url
         
-        return self.config.default_backend
+        return self.config.default_api_backend
     
     async def _forward_to_backend(self, request: Request) -> Response:
-        """透传请求到后端服务"""
+        """透传API请求到后端服务"""
         try:
             path = str(request.url.path)
             
-            # 获取后端服务URL
-            backend_url = self._get_backend_url(path)
+            # 获取API后端服务URL
+            backend_url = self._get_api_backend_url(path)
             target_url = f"{backend_url}{path}"
             if request.url.query:
                 target_url += f"?{request.url.query}"
             
-            logger.info(f"透传API请求到: {target_url}")
+            logger.info(f"透传API请求到后端: {target_url}")
             
             # 获取请求数据
             body = await request.body()
@@ -879,6 +853,61 @@ class RestAPIHandler(RestAPIInterface):
                 })
         
         return JSONResponse({"error": "不支持的操作"}, status_code=405)
+    
+    async def _handle_gateway_api(self, request: Request) -> Response:
+        """处理网关管理API"""
+        method = request.method.upper()
+        path = str(request.url.path)
+        
+        if path == "/api/gateway/config" and method == "GET":
+            return JSONResponse({
+                "frontend_service": self.config.frontend_service,
+                "backend_api_services": self.config.backend_api_services,
+                "default_api_backend": self.config.default_api_backend,
+                "request_timeout": self.config.request_timeout
+            })
+        
+        elif path == "/api/gateway/routes" and method == "GET":
+            return JSONResponse({
+                "routes": {
+                    "frontend": "页面和静态资源 -> " + self.config.frontend_service,
+                    "api_services": {
+                        route: f"API请求 {route} -> {backend}"
+                        for route, backend in self.config.backend_api_services.items()
+                    }
+                }
+            })
+        
+        return JSONResponse({"error": "不支持的网关管理操作"}, status_code=404)
+    
+    async def _handle_mock_api(self, request: Request) -> Response:
+        """处理模拟API - 用于测试"""
+        method = request.method.upper()
+        
+        if method == "GET":
+            return JSONResponse({
+                "message": "这是一个模拟API响应",
+                "method": "GET",
+                "timestamp": "2025-09-22T00:00:00Z",
+                "data": {"mock": True, "gateway": "FastAPI Gateway"}
+            })
+        
+        elif method == "POST":
+            body = await request.body()
+            try:
+                data = json.loads(body) if body else {}
+                return JSONResponse({
+                    "message": "模拟API POST响应",
+                    "received_data": data,
+                    "processed": True
+                }, status_code=201)
+            except json.JSONDecodeError:
+                return JSONResponse({
+                    "error": "Invalid JSON",
+                    "received": body.decode('utf-8', errors='ignore')
+                }, status_code=400)
+        
+        return JSONResponse({"error": "不支持的模拟API操作"}, status_code=405)
 
 
 class FileHandler(FileHandlerInterface):

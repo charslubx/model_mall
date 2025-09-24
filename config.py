@@ -18,9 +18,10 @@ class GatewayConfig:
     # 静态文件配置
     static_dir: str = "/workspace/static"
     
-    # 后端服务配置
-    backend_services: Dict[str, str] = None
-    default_backend: str = "http://localhost:3000"
+    # 服务配置
+    backend_api_services: Dict[str, str] = None  # 后端API服务
+    frontend_service: str = "http://localhost:3000"  # 前端服务
+    default_api_backend: str = "http://localhost:8080"  # 默认API后端
     
     # 日志配置
     log_level: str = "INFO"
@@ -47,13 +48,13 @@ class GatewayConfig:
             self.cors_allow_methods = ["*"]
         if self.cors_allow_headers is None:
             self.cors_allow_headers = ["*"]
-        if self.backend_services is None:
-            self.backend_services = {
-                "/api/users": "http://localhost:3001",
-                "/api/orders": "http://localhost:3002",
-                "/api/products": "http://localhost:3003",
-                "/api": "http://localhost:3000",  # 默认API服务
-                "/": "http://localhost:8080"  # 前端服务
+        if self.backend_api_services is None:
+            self.backend_api_services = {
+                "/api/users": "http://localhost:8081",  # 用户服务
+                "/api/orders": "http://localhost:8082",  # 订单服务
+                "/api/products": "http://localhost:8083",  # 产品服务
+                "/api/auth": "http://localhost:8084",  # 认证服务
+                "/api": "http://localhost:8080"  # 默认API服务
             }
 
 
@@ -64,6 +65,8 @@ def get_config() -> GatewayConfig:
         port=int(os.getenv("GATEWAY_PORT", "8000")),
         debug=os.getenv("GATEWAY_DEBUG", "true").lower() == "true",
         static_dir=os.getenv("GATEWAY_STATIC_DIR", "/workspace/static"),
+        frontend_service=os.getenv("FRONTEND_SERVICE", "http://localhost:3000"),
+        default_api_backend=os.getenv("DEFAULT_API_BACKEND", "http://localhost:8080"),
         log_level=os.getenv("GATEWAY_LOG_LEVEL", "INFO"),
         request_timeout=int(os.getenv("GATEWAY_REQUEST_TIMEOUT", "30")),
         connection_timeout=int(os.getenv("GATEWAY_CONNECTION_TIMEOUT", "10")),
