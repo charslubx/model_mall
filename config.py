@@ -18,6 +18,10 @@ class GatewayConfig:
     # 静态文件配置
     static_dir: str = "/workspace/static"
     
+    # 后端服务配置
+    backend_services: Dict[str, str] = None
+    default_backend: str = "http://localhost:3000"
+    
     # 日志配置
     log_level: str = "INFO"
     log_format: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -43,6 +47,14 @@ class GatewayConfig:
             self.cors_allow_methods = ["*"]
         if self.cors_allow_headers is None:
             self.cors_allow_headers = ["*"]
+        if self.backend_services is None:
+            self.backend_services = {
+                "/api/users": "http://localhost:3001",
+                "/api/orders": "http://localhost:3002",
+                "/api/products": "http://localhost:3003",
+                "/api": "http://localhost:3000",  # 默认API服务
+                "/": "http://localhost:8080"  # 前端服务
+            }
 
 
 def get_config() -> GatewayConfig:

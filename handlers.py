@@ -14,6 +14,7 @@ from interfaces import (
 import asyncio
 import httpx
 import logging
+from config import get_config
 
 # 配置日志
 logging.basicConfig(level=logging.INFO)
@@ -25,12 +26,31 @@ class XHRHandler(XHRHandlerInterface):
     
     def __init__(self):
         self.client: Optional[httpx.AsyncClient] = None
+        self.config = get_config()
     
     async def _get_client(self) -> httpx.AsyncClient:
         """获取或创建HTTP客户端"""
         if self.client is None or self.client.is_closed:
-            self.client = httpx.AsyncClient()
+            self.client = httpx.AsyncClient(
+                timeout=httpx.Timeout(self.config.request_timeout),
+                follow_redirects=True
+            )
         return self.client
+    
+    def _get_backend_url(self, path: str) -> str:
+        """根据路径获取后端服务URL"""
+        # 按路径长度排序，优先匹配更具体的路径
+        sorted_services = sorted(
+            self.config.backend_services.items(), 
+            key=lambda x: len(x[0]), 
+            reverse=True
+        )
+        
+        for service_path, backend_url in sorted_services:
+            if path.startswith(service_path):
+                return backend_url
+        
+        return self.config.default_backend
     
     async def can_handle(self, request: Request) -> bool:
         """判断是否为XHR请求"""
@@ -48,45 +68,68 @@ class XHRHandler(XHRHandlerInterface):
         return await self.handle_xhr_request(request)
     
     async def handle_xhr_request(self, request: Request) -> Response:
-        """处理XHR请求的具体逻辑"""
+        """处理XHR请求的具体逻辑 - 透传到后端服务"""
         try:
-            logger.info(f"处理XHR请求: {request.method} {request.url}")
+            path = str(request.url.path)
+            logger.info(f"透传XHR请求: {request.method} {path}")
+            
+            # 获取后端服务URL
+            backend_url = self._get_backend_url(path)
+            target_url = f"{backend_url}{path}"
+            if request.url.query:
+                target_url += f"?{request.url.query}"
+            
+            logger.info(f"转发到: {target_url}")
             
             # 获取请求数据
             body = await request.body()
             headers = dict(request.headers)
             
-            # 移除可能导致问题的headers
-            headers.pop('host', None)
-            headers.pop('content-length', None)
+            # 清理不需要转发的headers
+            headers_to_remove = ['host', 'content-length', 'connection', 'upgrade']
+            for header in headers_to_remove:
+                headers.pop(header, None)
             
-            # 这里可以添加请求转发逻辑
-            # 示例：转发到后端服务
+            # 获取HTTP客户端
             client = await self._get_client()
             
-            # 模拟处理逻辑
-            if request.method == "GET":
-                return JSONResponse({
-                    "status": "success",
-                    "message": "XHR GET request processed",
-                    "data": {"method": request.method, "url": str(request.url)}
-                })
-            elif request.method == "POST":
-                try:
-                    request_data = json.loads(body) if body else {}
-                except json.JSONDecodeError:
-                    request_data = {"raw_body": body.decode('utf-8')}
+            # 转发请求到后端服务
+            try:
+                response = await client.request(
+                    method=request.method,
+                    url=target_url,
+                    headers=headers,
+                    content=body if body else None
+                )
                 
+                # 构建响应
+                response_headers = dict(response.headers)
+                # 移除可能导致问题的响应头
+                response_headers.pop('content-length', None)
+                response_headers.pop('transfer-encoding', None)
+                
+                return Response(
+                    content=response.content,
+                    status_code=response.status_code,
+                    headers=response_headers,
+                    media_type=response.headers.get('content-type')
+                )
+                
+            except httpx.ConnectError:
+                logger.error(f"无法连接到后端服务: {backend_url}")
                 return JSONResponse({
-                    "status": "success",
-                    "message": "XHR POST request processed",
-                    "data": request_data
-                })
-            else:
+                    "error": "Backend service unavailable",
+                    "message": f"无法连接到后端服务: {backend_url}",
+                    "status": "service_unavailable"
+                }, status_code=503)
+            
+            except httpx.TimeoutException:
+                logger.error(f"后端服务响应超时: {backend_url}")
                 return JSONResponse({
-                    "status": "success",
-                    "message": f"XHR {request.method} request processed"
-                })
+                    "error": "Backend service timeout",
+                    "message": "后端服务响应超时",
+                    "status": "timeout"
+                }, status_code=504)
                 
         except Exception as e:
             logger.error(f"XHR请求处理错误: {str(e)}")
@@ -95,6 +138,34 @@ class XHRHandler(XHRHandlerInterface):
 
 class NonXHRHandler(NonXHRHandlerInterface):
     """非XHR请求处理器实现"""
+    
+    def __init__(self):
+        self.client: Optional[httpx.AsyncClient] = None
+        self.config = get_config()
+    
+    async def _get_client(self) -> httpx.AsyncClient:
+        """获取或创建HTTP客户端"""
+        if self.client is None or self.client.is_closed:
+            self.client = httpx.AsyncClient(
+                timeout=httpx.Timeout(self.config.request_timeout),
+                follow_redirects=True
+            )
+        return self.client
+    
+    def _get_backend_url(self, path: str) -> str:
+        """根据路径获取后端服务URL"""
+        # 按路径长度排序，优先匹配更具体的路径
+        sorted_services = sorted(
+            self.config.backend_services.items(), 
+            key=lambda x: len(x[0]), 
+            reverse=True
+        )
+        
+        for service_path, backend_url in sorted_services:
+            if path.startswith(service_path):
+                return backend_url
+        
+        return self.config.default_backend
     
     async def can_handle(self, request: Request) -> bool:
         """判断是否为非XHR请求"""
@@ -112,26 +183,101 @@ class NonXHRHandler(NonXHRHandlerInterface):
         return await self.handle_non_xhr_request(request)
     
     async def handle_non_xhr_request(self, request: Request) -> Response:
-        """处理非XHR请求的具体逻辑"""
+        """处理非XHR请求的具体逻辑 - 透传到后端服务"""
         try:
-            logger.info(f"处理非XHR请求: {request.method} {request.url}")
-            
-            # 根据路径判断是否为前端资源加载
             path = str(request.url.path)
+            logger.info(f"透传非XHR请求: {request.method} {path}")
             
-            if path.startswith('/api/'):
-                # API请求但非XHR，可能是表单提交等
-                return JSONResponse({
-                    "status": "success",
-                    "message": "Non-XHR API request processed",
-                    "path": path
-                })
-            else:
-                # 可能是页面请求或静态资源
-                return Response(
-                    content=f"<html><body><h1>Gateway Response</h1><p>Path: {path}</p></body></html>",
-                    media_type="text/html"
+            # 获取后端服务URL
+            backend_url = self._get_backend_url(path)
+            target_url = f"{backend_url}{path}"
+            if request.url.query:
+                target_url += f"?{request.url.query}"
+            
+            logger.info(f"转发到: {target_url}")
+            
+            # 获取请求数据
+            body = await request.body()
+            headers = dict(request.headers)
+            
+            # 清理不需要转发的headers
+            headers_to_remove = ['host', 'content-length', 'connection', 'upgrade']
+            for header in headers_to_remove:
+                headers.pop(header, None)
+            
+            # 获取HTTP客户端
+            client = await self._get_client()
+            
+            # 转发请求到后端服务
+            try:
+                response = await client.request(
+                    method=request.method,
+                    url=target_url,
+                    headers=headers,
+                    content=body if body else None
                 )
+                
+                # 构建响应
+                response_headers = dict(response.headers)
+                # 移除可能导致问题的响应头
+                response_headers.pop('content-length', None)
+                response_headers.pop('transfer-encoding', None)
+                
+                return Response(
+                    content=response.content,
+                    status_code=response.status_code,
+                    headers=response_headers,
+                    media_type=response.headers.get('content-type')
+                )
+                
+            except httpx.ConnectError:
+                logger.error(f"无法连接到后端服务: {backend_url}")
+                # 对于页面请求，返回友好的错误页面
+                if not path.startswith('/api/'):
+                    return Response(
+                        content=f"""
+                        <html>
+                        <head><title>服务不可用</title></head>
+                        <body>
+                            <h1>服务暂时不可用</h1>
+                            <p>无法连接到后端服务: {backend_url}</p>
+                            <p>请稍后再试</p>
+                        </body>
+                        </html>
+                        """,
+                        status_code=503,
+                        media_type="text/html"
+                    )
+                else:
+                    return JSONResponse({
+                        "error": "Backend service unavailable",
+                        "message": f"无法连接到后端服务: {backend_url}",
+                        "status": "service_unavailable"
+                    }, status_code=503)
+            
+            except httpx.TimeoutException:
+                logger.error(f"后端服务响应超时: {backend_url}")
+                if not path.startswith('/api/'):
+                    return Response(
+                        content=f"""
+                        <html>
+                        <head><title>服务超时</title></head>
+                        <body>
+                            <h1>服务响应超时</h1>
+                            <p>后端服务响应时间过长</p>
+                            <p>请稍后再试</p>
+                        </body>
+                        </html>
+                        """,
+                        status_code=504,
+                        media_type="text/html"
+                    )
+                else:
+                    return JSONResponse({
+                        "error": "Backend service timeout",
+                        "message": "后端服务响应超时",
+                        "status": "timeout"
+                    }, status_code=504)
                 
         except Exception as e:
             logger.error(f"非XHR请求处理错误: {str(e)}")
@@ -143,19 +289,98 @@ class RestAPIHandler(RestAPIInterface):
     
     def __init__(self):
         self.client: Optional[httpx.AsyncClient] = None
-        self.api_routes = {
-            "/api/users": self._handle_users_api,
-            "/api/data": self._handle_data_api,
-            "/api/products": self._handle_products_api,
-            "/api/orders": self._handle_orders_api,
-            "/api/auth": self._handle_auth_api
+        self.config = get_config()
+        # 保留一些模拟端点，其他透传到后端
+        self.mock_routes = {
+            "/api/gateway": self._handle_gateway_api,  # 网关自身管理API
+            "/api/mock": self._handle_mock_api,  # 模拟API，用于测试
         }
     
     async def _get_client(self) -> httpx.AsyncClient:
         """获取或创建HTTP客户端"""
         if self.client is None or self.client.is_closed:
-            self.client = httpx.AsyncClient()
+            self.client = httpx.AsyncClient(
+                timeout=httpx.Timeout(self.config.request_timeout),
+                follow_redirects=True
+            )
         return self.client
+    
+    def _get_backend_url(self, path: str) -> str:
+        """根据路径获取后端服务URL"""
+        # 按路径长度排序，优先匹配更具体的路径
+        sorted_services = sorted(
+            self.config.backend_services.items(), 
+            key=lambda x: len(x[0]), 
+            reverse=True
+        )
+        
+        for service_path, backend_url in sorted_services:
+            if path.startswith(service_path):
+                return backend_url
+        
+        return self.config.default_backend
+    
+    async def _forward_to_backend(self, request: Request) -> Response:
+        """透传请求到后端服务"""
+        try:
+            path = str(request.url.path)
+            
+            # 获取后端服务URL
+            backend_url = self._get_backend_url(path)
+            target_url = f"{backend_url}{path}"
+            if request.url.query:
+                target_url += f"?{request.url.query}"
+            
+            logger.info(f"透传API请求到: {target_url}")
+            
+            # 获取请求数据
+            body = await request.body()
+            headers = dict(request.headers)
+            
+            # 清理不需要转发的headers
+            headers_to_remove = ['host', 'content-length', 'connection', 'upgrade']
+            for header in headers_to_remove:
+                headers.pop(header, None)
+            
+            # 获取HTTP客户端
+            client = await self._get_client()
+            
+            # 转发请求到后端服务
+            response = await client.request(
+                method=request.method,
+                url=target_url,
+                headers=headers,
+                content=body if body else None
+            )
+            
+            # 构建响应
+            response_headers = dict(response.headers)
+            # 移除可能导致问题的响应头
+            response_headers.pop('content-length', None)
+            response_headers.pop('transfer-encoding', None)
+            
+            return Response(
+                content=response.content,
+                status_code=response.status_code,
+                headers=response_headers,
+                media_type=response.headers.get('content-type')
+            )
+            
+        except httpx.ConnectError:
+            logger.error(f"无法连接到后端服务: {backend_url}")
+            return JSONResponse({
+                "error": "Backend service unavailable",
+                "message": f"无法连接到后端服务: {backend_url}",
+                "status": "service_unavailable"
+            }, status_code=503)
+        
+        except httpx.TimeoutException:
+            logger.error(f"后端服务响应超时: {backend_url}")
+            return JSONResponse({
+                "error": "Backend service timeout",
+                "message": "后端服务响应超时",
+                "status": "timeout"
+            }, status_code=504)
     
     async def process_http_request(self, request: Request) -> Response:
         """处理HTTP请求"""
@@ -207,19 +432,13 @@ class RestAPIHandler(RestAPIInterface):
         path = str(request.url.path)
         logger.info(f"处理GET请求: {path}")
         
-        # 根据路径分发到具体处理器
-        for route, handler in self.api_routes.items():
+        # 检查是否为模拟路由
+        for route, handler in self.mock_routes.items():
             if path.startswith(route):
                 return await handler(request)
         
-        # 通用GET处理
-        return JSONResponse({
-            "status": "success",
-            "method": "GET",
-            "path": path,
-            "query_params": dict(request.query_params),
-            "message": "GET请求处理成功"
-        })
+        # 透传到后端服务
+        return await self._forward_to_backend(request)
     
     async def handle_post(self, request: Request) -> Response:
         """处理POST请求"""
