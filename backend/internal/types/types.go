@@ -22,3 +22,57 @@ type Response struct {
 	Message string      `json:"message"`
 	Data    interface{} `json:"data,omitempty"`
 }
+
+// UploadImageReq 上传图片请求
+type UploadImageReq struct {
+	// 通过multipart/form-data上传，在handler中处理
+}
+
+// UploadImageResp 上传图片响应
+type UploadImageResp struct {
+	ImageID        int64                   `json:"image_id"`
+	Filename       string                  `json:"filename"`
+	FilePath       string                  `json:"file_path"`
+	FileSize       int64                   `json:"file_size"`
+	Status         int                     `json:"status"`
+	Classifications []ClassificationItem   `json:"classifications"`
+}
+
+// ClassificationItem 分类项
+type ClassificationItem struct {
+	Label      string  `json:"label"`
+	Confidence float64 `json:"confidence"`
+}
+
+// GetImageReq 获取图片信息请求
+type GetImageReq struct {
+	ImageID int64 `path:"id"`
+}
+
+// GetImageResp 获取图片信息响应
+type GetImageResp struct {
+	ID              int64                  `json:"id"`
+	Filename        string                 `json:"filename"`
+	FilePath        string                 `json:"file_path"`
+	FileSize        int64                  `json:"file_size"`
+	MimeType        string                 `json:"mime_type"`
+	Width           *int                   `json:"width,omitempty"`
+	Height          *int                   `json:"height,omitempty"`
+	UploadedBy      *int64                 `json:"uploaded_by,omitempty"`
+	Status          int                    `json:"status"`
+	Classifications []ClassificationItem   `json:"classifications"`
+	CreatedAt       string                 `json:"created_at"`
+	UpdatedAt       string                 `json:"updated_at"`
+}
+
+// ListImagesReq 列出图片请求
+type ListImagesReq struct {
+	Page     int `form:"page,default=1"`
+	PageSize int `form:"page_size,default=10"`
+}
+
+// ListImagesResp 列出图片响应
+type ListImagesResp struct {
+	Total int64           `json:"total"`
+	List  []GetImageResp  `json:"list"`
+}

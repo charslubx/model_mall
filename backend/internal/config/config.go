@@ -29,4 +29,10 @@ type Config struct {
 		Password string
 		Database string
 	}
+	Model struct {
+		Name     string
+		Version  string
+		Type     string // local 或 remote
+		Path     string // 本地模型路径或远程服务端点
+	}
 }

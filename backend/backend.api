@@ -8,8 +8,66 @@ type Response {
 	Message string `json:"message"`
 }
 
+// 图片上传和分类相关类型定义
+type UploadImageReq {
+	// 通过multipart/form-data上传，在handler中处理
+}
+
+type UploadImageResp {
+	ImageID        int64                   `json:"image_id"`
+	Filename       string                  `json:"filename"`
+	FilePath       string                  `json:"file_path"`
+	FileSize       int64                   `json:"file_size"`
+	Status         int                     `json:"status"`
+	Classifications []ClassificationItem   `json:"classifications"`
+}
+
+type ClassificationItem {
+	Label      string  `json:"label"`
+	Confidence float64 `json:"confidence"`
+}
+
+type GetImageReq {
+	ImageID int64 `path:"id"`
+}
+
+type GetImageResp {
+	ID              int64                  `json:"id"`
+	Filename        string                 `json:"filename"`
+	FilePath        string                 `json:"file_path"`
+	FileSize        int64                  `json:"file_size"`
+	MimeType        string                 `json:"mime_type"`
+	Width           int                    `json:"width,omitempty"`
+	Height          int                    `json:"height,omitempty"`
+	UploadedBy      int64                  `json:"uploaded_by,omitempty"`
+	Status          int                    `json:"status"`
+	Classifications []ClassificationItem   `json:"classifications"`
+	CreatedAt       string                 `json:"created_at"`
+	UpdatedAt       string                 `json:"updated_at"`
+}
+
+type ListImagesReq {
+	Page     int `form:"page,default=1"`
+	PageSize int `form:"page_size,default=10"`
+}
+
+type ListImagesResp {
+	Total int64           `json:"total"`
+	List  []GetImageResp  `json:"list"`
+}
+
 service backend-api {
 	@handler BackendHandler
 	get /from/:name (Request) returns (Response)
+	
+	// 图片分类相关接口
+	@handler UploadImageHandler
+	post /api/images/upload (UploadImageReq) returns (UploadImageResp)
+	
+	@handler GetImageHandler
+	get /api/images/:id (GetImageReq) returns (GetImageResp)
+	
+	@handler ListImagesHandler
+	get /api/images (ListImagesReq) returns (ListImagesResp)
 }
 

@@ -9,13 +9,15 @@ import (
 )
 
 type ServiceContext struct {
-	Config      config.Config
-	LogHelper   *LogHelper
-	PGHelper    *PGHelper
-	MySqlHelper *MySqlHelper
-	RedisHelper *RedisHelper
-	OrmHelper   *OrmHelper
-	Repos       *repository.Repositories
+	Config       config.Config
+	LogHelper    *LogHelper
+	PGHelper     *PGHelper
+	MySqlHelper  *MySqlHelper
+	RedisHelper  *RedisHelper
+	OrmHelper    *OrmHelper
+	Repos        *repository.Repositories
+	ImageRepo    *repository.ImageRepository
+	ModelService ModelService
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
@@ -59,6 +61,22 @@ func NewServiceContext(c config.Config) *ServiceContext {
 
 	// 初始化仓库层
 	svcCtx.Repos = repository.NewRepositories(ormHelper.GetDB())
+	svcCtx.ImageRepo = repository.NewImageRepository(ormHelper.GetDB())
+
+	// 初始化模型服务
+	if c.Model.Type == "remote" {
+		svcCtx.ModelService = NewRemoteModelService(
+			c.Model.Path,
+			c.Model.Name,
+			c.Model.Version,
+		)
+	} else {
+		svcCtx.ModelService = NewLocalModelService(
+			c.Model.Path,
+			c.Model.Name,
+			c.Model.Version,
+		)
+	}
 
 	return svcCtx
 }
