@@ -1,54 +1,55 @@
 # 部署指南
 
-## 快速部署（适用于PyTorch Checkpoint模型）
+## 快速部署（PyTorch完整模型）
 
 ### 前提条件
 - Docker 和 Docker Compose
-- PyTorch checkpoint文件（.pth/.pt/.mph）
-- 训练代码中的模型类定义
+- PyTorch完整模型文件（.pth/.pt）
 
 ### 部署步骤
 
-#### 1. 准备模型定义
+#### 1. 准备模型文件
 
-将训练代码中的模型类复制到：
-```
-/workspace/model_service/app/model_architecture.py
-```
-
-详细步骤参考: [CUSTOM_MODEL_INTEGRATION.md](CUSTOM_MODEL_INTEGRATION.md)
-
-#### 2. 配置环境
-
-编辑 `model_service/docker-compose.yml`:
-```yaml
-environment:
-  - MODEL_PATH=/app/models/checkpoint_best.pth
-  - MODEL_ARCH=my_model      # 你定义的模型名
-  - NUM_CLASSES=10           # 类别数量
+确保你的模型是完整模型格式：
+```python
+# 训练时这样保存
+torch.save(model, 'model.pth')
 ```
 
-#### 3. 准备文件和启动
+#### 2. 复制模型文件
 
 ```bash
-# 复制checkpoint
-cp checkpoint_best.pth model_service/models/
+cp model.pth /workspace/model_service/models/
+```
 
-# 创建标签文件
-cat > model_service/models/labels.txt << EOF
+#### 3. 准备标签文件
+
+```bash
+cat > /workspace/model_service/models/labels.txt << EOF
 类别1
 类别2
+类别3
 ...
 EOF
+```
 
-# 一键启动
+#### 4. 启动服务
+
+```bash
+cd /workspace
 ./start_all_services.sh
 ```
 
-#### 4. 验证
+#### 5. 验证
 
 ```bash
+# 健康检查
 curl http://localhost:5000/health
+
+# 测试分类
+curl -X POST http://localhost:5000/classify -F "image=@test.jpg"
+
+# 完整流程测试
 curl -X POST http://localhost:8888/api/images/upload -F "image=@test.jpg"
 ```
 

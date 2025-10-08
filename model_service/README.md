@@ -38,18 +38,17 @@ model_service/
 
 ## 🚀 快速开始
 
-### PyTorch Checkpoint模型（推荐方式）
+### PyTorch完整模型（推荐方式）
 
 ```bash
-# 1. 将模型类定义复制到 app/model_architecture.py
-# 2. 配置 docker-compose.yml
-# 3. 启动服务
+# 1. 复制模型文件
+cp model.pth models/
 
-cp checkpoint_best.pth models/
+# 2. 启动服务
 ./start_with_docker.sh
 ```
 
-详细步骤: [STEP_BY_STEP.md](STEP_BY_STEP.md)
+**就这么简单！**
 
 ### 配置文件
 
@@ -117,16 +116,20 @@ export PORT=5000
 python -m app.api
 ```
 
-## 🔧 PyTorch .mph 模型文件支持
+## 🔧 PyTorch模型支持
 
-### .mph 文件说明
+### 完整模型格式
 
-`.mph`文件是PyTorch模型的一种保存格式。本服务已经完全支持PyTorch模型：
+本服务支持PyTorch完整模型：
 
-- ✅ 完整模型（推荐）：使用 `torch.save(model, 'model.mph')`
-- ✅ 权重文件：使用 `torch.save(model.state_dict(), 'model.mph')`
+```python
+# 训练时保存
+torch.save(model, 'model.pth')
 
-**推荐使用完整模型**，这样无需额外配置即可直接使用。
+# 部署时直接加载，无需额外配置
+```
+
+**简单、快速、无需配置！**
 
 ### 常见模型格式转换
 

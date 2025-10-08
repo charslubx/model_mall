@@ -45,7 +45,7 @@ services:
     volumes:
       - ./model_service/models:/app/models
     environment:
-      - MODEL_PATH=/app/models/model.mph
+      - MODEL_PATH=/app/models/model.pth  # PyTorch完整模型
       - MODEL_NAME=image-classifier
       - PORT=5000
       - HOST=0.0.0.0

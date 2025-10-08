@@ -188,7 +188,7 @@ class ONNXModelLoader(ModelLoader):
 
 
 class PyTorchModelLoader(ModelLoader):
-    """PyTorch模型加载器"""
+    """PyTorch模型加载器（完整模型）"""
     
     def __init__(self, model_path: str, model_name: str = "image-classifier", device: str = None):
         super().__init__(model_path, model_name)
@@ -202,46 +202,27 @@ class PyTorchModelLoader(ModelLoader):
         logger.info(f"使用设备: {self.device}")
     
     def load_model(self):
-        """加载PyTorch模型"""
+        """加载PyTorch完整模型"""
         try:
             import torch
             logger.info(f"正在加载PyTorch模型: {self.model_path}")
             
-            # 加载文件
-            checkpoint = torch.load(self.model_path, map_location=self.device)
+            # 加载完整模型
+            self.model = torch.load(self.model_path, map_location=self.device)
             
-            # 判断加载的内容类型
-            if isinstance(checkpoint, dict):
-                # 检查是否是checkpoint格式（包含model_state）
-                if 'model_state' in checkpoint:
-                    logger.info("检测到checkpoint格式（包含model_state）")
-                    logger.info(f"  - Epoch: {checkpoint.get('epoch', 'N/A')}")
-                    logger.info(f"  - Best Val Loss: {checkpoint.get('best_val_loss', 'N/A')}")
-                    
-                    # 需要模型架构
-                    raise RuntimeError(
-                        "检测到checkpoint格式。需要提供模型架构定义。\n"
-                        "请在 app/model_architecture.py 中定义模型，然后使用 load_checkpoint_with_architecture() 方法"
-                    )
-                
-                # 检查是否是纯state_dict
-                elif 'model_state_dict' in checkpoint or any(key.startswith('conv') or key.startswith('fc') for key in checkpoint.keys()):
-                    logger.info("检测到state_dict格式")
-                    raise RuntimeError(
-                        "检测到state_dict格式。需要提供模型架构定义。\n"
-                        "请在 app/model_architecture.py 中定义模型，然后使用 load_model_with_architecture() 方法"
-                    )
-                else:
-                    logger.warning(f"未知的字典格式，键: {list(checkpoint.keys())[:5]}")
-                    raise RuntimeError("未知的模型格式")
+            # 检查是否是nn.Module实例
+            if not isinstance(self.model, torch.nn.Module):
+                raise RuntimeError(
+                    f"加载的不是有效的PyTorch模型。\n"
+                    f"类型: {type(self.model)}\n"
+                    f"请确保使用 torch.save(model, 'model.pth') 保存完整模型"
+                )
             
-            # 尝试作为完整模型加载
-            else:
-                logger.info("检测到完整模型格式")
-                self.model = checkpoint
+            logger.info(f"成功加载模型，类型: {type(self.model).__name__}")
             
             # 设置为评估模式
             self.model.eval()
+            logger.info("已设置为评估模式")
             
             # 移动到指定设备
             self.model.to(self.device)
@@ -249,77 +230,10 @@ class PyTorchModelLoader(ModelLoader):
             self.is_loaded = True
             logger.info("PyTorch模型加载成功")
             
-        except RuntimeError:
-            # 重新抛出Runtime错误（这是我们自己定义的）
-            raise
         except Exception as e:
             logger.error(f"加载PyTorch模型失败: {str(e)}")
+            logger.error("提示: 请确保模型是使用 torch.save(model, path) 保存的完整模型")
             raise
-    
-    def load_checkpoint_with_architecture(self, model_class):
-        """
-        使用预定义的模型架构加载checkpoint格式（包含model_state）
-        
-        Args:
-            model_class: 模型类或实例
-        """
-        try:
-            import torch
-            logger.info(f"使用自定义架构加载checkpoint: {self.model_path}")
-            
-            # 创建模型实例
-            if isinstance(model_class, type):
-                self.model = model_class()
-            else:
-                self.model = model_class
-            
-            # 加载checkpoint
-            checkpoint = torch.load(self.model_path, map_location=self.device)
-            
-            # 提取model_state
-            if 'model_state' in checkpoint:
-                model_state = checkpoint['model_state']
-                logger.info(f"从checkpoint加载权重 (epoch: {checkpoint.get('epoch', 'N/A')})")
-            elif 'model_state_dict' in checkpoint:
-                model_state = checkpoint['model_state_dict']
-                logger.info("从checkpoint加载model_state_dict")
-            else:
-                model_state = checkpoint
-                logger.info("直接加载state_dict")
-            
-            # 加载权重到模型
-            self.model.load_state_dict(model_state)
-            
-            # 设置为评估模式
-            self.model.eval()
-            
-            # 移动到指定设备
-            self.model.to(self.device)
-            
-            self.is_loaded = True
-            logger.info("PyTorch模型加载成功")
-            
-            # 显示checkpoint信息
-            if isinstance(checkpoint, dict):
-                logger.info("Checkpoint信息:")
-                if 'epoch' in checkpoint:
-                    logger.info(f"  - 训练轮次: {checkpoint['epoch']}")
-                if 'best_val_loss' in checkpoint:
-                    logger.info(f"  - 最佳验证损失: {checkpoint['best_val_loss']:.4f}")
-            
-        except Exception as e:
-            logger.error(f"加载PyTorch模型失败: {str(e)}")
-            raise
-    
-    def load_model_with_architecture(self, model_class):
-        """
-        使用预定义的模型架构加载state_dict
-        这是load_checkpoint_with_architecture的别名，为了兼容性保留
-        
-        Args:
-            model_class: 模型类或实例
-        """
-        return self.load_checkpoint_with_architecture(model_class)
     
     def predict(self, image_data: bytes) -> List[Dict[str, Any]]:
         """预测图片分类"""

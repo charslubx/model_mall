@@ -4,9 +4,7 @@
 
 ---
 
-> 🎯 **推荐：[SAVE_FULL_MODEL_GUIDE.md](SAVE_FULL_MODEL_GUIDE.md)** - 保存完整模型，部署超简单！⭐
-> 
-> 💡 **或者：[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - 使用Checkpoint部署（需要提供模型定义）
+> 🎯 **从这里开始：[START_HERE.md](START_HERE.md)** - 最简单的部署方案！⭐
 
 ---
 
@@ -35,18 +33,17 @@
 - Python 3.10+ （用于模型服务）
 - 训练好的模型文件（推荐：PyTorch .mph/.pt/.pth）
 
-### 快速部署（3步）
+### 快速部署（2步）
 
 ```bash
-# 1. 复制模型定义到 model_service/app/model_architecture.py
-# 2. 配置 model_service/docker-compose.yml (MODEL_ARCH, NUM_CLASSES)
-# 3. 启动服务
+# 1. 复制完整模型文件
+cp model.pth model_service/models/
 
-cp checkpoint_best.pth model_service/models/
+# 2. 启动服务
 ./start_all_services.sh
 ```
 
-详细步骤查看 **[CUSTOM_MODEL_INTEGRATION.md](CUSTOM_MODEL_INTEGRATION.md)**
+详细步骤查看 **[SIMPLE_DEPLOYMENT.md](SIMPLE_DEPLOYMENT.md)**
 
 ## 📋 项目结构说明
 
@@ -168,13 +165,15 @@ curl http://localhost:8888/api/images?page=1&page_size=10
 
 ## 📚 文档
 
-### 核心文档
-- **[自定义模型集成](CUSTOM_MODEL_INTEGRATION.md)** - ⭐ PyTorch自定义模型部署
-- **[分步操作指南](model_service/STEP_BY_STEP.md)** - 详细操作步骤
-- **[部署指南](DEPLOYMENT.md)** - 完整部署流程
-- **[API使用指南](IMAGE_CLASSIFICATION_GUIDE.md)** - 接口文档和使用说明
-- **[模型服务文档](model_service/README.md)** - Python服务详细说明
-- **[数据库设计](DATABASE_DESIGN.md)** - 数据库表结构
+### 快速开始
+- **[START_HERE.md](START_HERE.md)** - ⭐ 从这里开始
+- **[FINAL_GUIDE.md](FINAL_GUIDE.md)** - 完整部署指南
+
+### 参考文档
+- **[SAVE_FULL_MODEL_GUIDE.md](SAVE_FULL_MODEL_GUIDE.md)** - 如何保存完整模型
+- **[IMAGE_CLASSIFICATION_GUIDE.md](IMAGE_CLASSIFICATION_GUIDE.md)** - API使用
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** - 详细部署
+- **[DATABASE_DESIGN.md](DATABASE_DESIGN.md)** - 数据库设计
 
 ## 🔧 配置
 
