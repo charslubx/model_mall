@@ -2,6 +2,14 @@
 
 基于 Go-Zero 框架构建的模型商城后端服务，集成图片分类和存储功能
 
+---
+
+> 🎯 **PyTorch用户快速开始：** 如果你有PyTorch训练的模型文件 (.mph/.pt/.pth)，
+> 
+> 👉 **直接查看：[START_HERE_PYTORCH.md](START_HERE_PYTORCH.md) - 3步完成部署！**
+
+---
+
 ## ✨ 功能特性
 
 - 🔐 基于RBAC的用户权限管理系统
@@ -13,29 +21,47 @@
 
 ## 🚀 快速开始
 
+### 🎯 最快部署（PyTorch模型）
+
+**如果你有PyTorch训练的模型文件，查看：**
+
+👉 **[START_HERE_PYTORCH.md](START_HERE_PYTORCH.md)** - 3步完成部署
+
 ### 前置要求
 
 - Docker 和 Docker Compose
 - Go 1.21+
 - PostgreSQL 15
 - Python 3.10+ （用于模型服务）
-- 训练好的模型文件（.mph, .h5, .onnx等）
+- 训练好的模型文件（推荐：PyTorch .mph/.pt/.pth）
 
 ### 一键部署
 
 ```bash
-# 1. 准备模型文件
+# 1. 测试模型文件（PyTorch）
+cd model_service
+python test_pytorch_model.py /path/to/your/model.mph
+
+# 2. 准备模型文件
 cp /path/to/your/model.mph model_service/models/
 
-# 2. 启动所有服务
+# 3. 准备标签文件
+cat > model_service/models/labels.txt << EOF
+类别1
+类别2
+类别3
+EOF
+
+# 4. 启动所有服务
+cd /workspace
 ./start_all_services.sh
 
-# 3. 测试系统
+# 5. 测试系统
 curl http://localhost:5000/health
 curl -X POST http://localhost:8888/api/images/upload -F "image=@test.jpg"
 ```
 
-详细部署说明请查看 [DEPLOYMENT.md](DEPLOYMENT.md)
+详细部署说明请查看 [DEPLOYMENT.md](DEPLOYMENT.md) 或 [PyTorch快速开始](PYTORCH_QUICKSTART.md)
 
 ## 📋 项目结构说明
 
@@ -149,16 +175,22 @@ curl http://localhost:8888/api/images?page=1&page_size=10
 
 ### 模型支持
 
+- ✅ **PyTorch模型** (.pt, .pth, .mph) - 推荐
 - ✅ Keras模型 (.h5)
 - ✅ ONNX模型 (.onnx)
-- ✅ 自定义格式 (.mph)
+- ✅ GPU加速（CUDA）
 - ✅ 本地模型和远程模型服务
 
 ## 📚 文档
 
+### 快速开始
+- **[PyTorch模型快速开始](PYTORCH_QUICKSTART.md)** - ⭐ PyTorch模型5分钟部署指南
+
+### 完整文档
 - **[部署指南](DEPLOYMENT.md)** - 完整的部署步骤
 - **[模型集成指南](MODEL_INTEGRATION_GUIDE.md)** - 如何集成你的模型
 - **[图片分类使用指南](IMAGE_CLASSIFICATION_GUIDE.md)** - API使用和功能说明
+- **[PyTorch模型详细指南](model_service/PYTORCH_MODEL_GUIDE.md)** - PyTorch模型完整说明
 - **[模型服务文档](model_service/README.md)** - Python模型服务详细说明
 - **[数据库设计](DATABASE_DESIGN.md)** - 数据库表结构设计
 

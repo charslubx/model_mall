@@ -7,12 +7,12 @@ Pillow==10.1.0
 numpy==1.24.3
 
 # 深度学习框架（根据实际使用的模型选择）
-# TensorFlow/Keras模型支持（.h5文件）
-tensorflow==2.15.0
+# TensorFlow/Keras模型支持（.h5文件）- 如果不需要可以注释掉
+# tensorflow==2.15.0
 
-# PyTorch模型支持（.pt/.pth文件）
-# torch==2.1.0
-# torchvision==0.16.0
+# PyTorch模型支持（.pt/.pth/.mph文件）
+torch==2.1.0
+torchvision==0.16.0
 
 # ONNX模型支持（.onnx文件）
 # onnxruntime==1.16.3

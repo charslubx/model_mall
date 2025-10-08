@@ -4,8 +4,10 @@
 
 ## 📋 功能特性
 
-- ✅ 支持多种模型格式：`.h5`（Keras）、`.onnx`（ONNX）、`.mph`（自定义）
+- ✅ **支持PyTorch模型**：`.pt`、`.pth`、`.mph`（推荐）
+- ✅ 支持多种模型格式：Keras (`.h5`)、ONNX (`.onnx`)
 - ✅ 自动识别并加载对应格式的模型
+- ✅ GPU加速支持（CUDA）
 - ✅ RESTful API接口
 - ✅ Docker容器化部署
 - ✅ 健康检查和监控
@@ -34,17 +36,43 @@ model_service/
 └── README.md                  # 本文件
 ```
 
-## 🚀 快速开始
+## 🚀 快速开始（PyTorch模型）
 
-### 方式1：使用Docker（推荐）
-
-1. **准备模型文件**
-
-将你的`.mph`模型文件放到`models/`目录下：
+### 第一步：测试模型文件
 
 ```bash
-cp /path/to/your/model.mph models/
+# 测试你的.mph文件是否可以加载
+python test_pytorch_model.py /path/to/your/model.mph
 ```
+
+这个测试会告诉你：
+- ✅ 模型是否可以直接使用
+- ⚠️ 还是需要先定义模型架构
+
+### 第二步：部署模型
+
+#### 情况A: 完整模型（推荐）
+
+如果测试通过，直接部署：
+
+```bash
+# 1. 复制模型文件
+cp /path/to/your/model.mph models/
+
+# 2. 准备标签文件
+cat > models/labels.txt << EOF
+类别1
+类别2
+类别3
+EOF
+
+# 3. 启动服务
+./start_with_docker.sh
+```
+
+#### 情况B: 权重文件（state_dict）
+
+如果需要模型架构，参考 [PyTorch模型指南](PYTORCH_MODEL_GUIDE.md)
 
 2. **更新配置**
 
@@ -112,11 +140,16 @@ export PORT=5000
 python -m app.api
 ```
 
-## 🔧 .mph 模型文件支持
+## 🔧 PyTorch .mph 模型文件支持
 
-### 什么是 .mph 文件？
+### .mph 文件说明
 
-如果你的模型是`.mph`格式，可能需要根据实际情况修改`app/model_loader.py`中的`CustomModelLoader`类。
+`.mph`文件是PyTorch模型的一种保存格式。本服务已经完全支持PyTorch模型：
+
+- ✅ 完整模型（推荐）：使用 `torch.save(model, 'model.mph')`
+- ✅ 权重文件：使用 `torch.save(model.state_dict(), 'model.mph')`
+
+**推荐使用完整模型**，这样无需额外配置即可直接使用。
 
 ### 常见模型格式转换
 
