@@ -29,4 +29,15 @@ type Config struct {
 		Password string
 		Database string
 	}
+	ModelService struct {
+		BaseURL string
+		APIKey  string
+		Timeout int // 超时时间（秒）
+	}
+	Upload struct {
+		MaxSize      int64  // 最大文件大小（字节）
+		AllowedTypes string // 允许的文件类型，逗号分隔
+		StoragePath  string // 存储路径
+		BaseURL      string // 访问基础URL
+	}
 }
