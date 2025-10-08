@@ -174,6 +174,7 @@ curl http://localhost:8888/api/images?page=1&page_size=10
 - **[IMAGE_CLASSIFICATION_GUIDE.md](IMAGE_CLASSIFICATION_GUIDE.md)** - API使用
 - **[DEPLOYMENT.md](DEPLOYMENT.md)** - 详细部署
 - **[DATABASE_DESIGN.md](DATABASE_DESIGN.md)** - 数据库设计
+- **[ONNX_SOLUTION.md](ONNX_SOLUTION.md)** - 纯Go方案（可选）
 
 ## 🔧 配置
 
