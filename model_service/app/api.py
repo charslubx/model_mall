@@ -30,17 +30,47 @@ def init_model():
     # 从环境变量获取配置
     model_path = os.environ.get('MODEL_PATH', '/app/models/model.h5')
     model_name = os.environ.get('MODEL_NAME', 'image-classifier')
+    model_arch = os.environ.get('MODEL_ARCH', None)  # 模型架构名称
+    num_classes = int(os.environ.get('NUM_CLASSES', '10'))  # 分类数量
     
     logger.info(f"初始化模型服务...")
     logger.info(f"模型路径: {model_path}")
     logger.info(f"模型名称: {model_name}")
+    logger.info(f"模型架构: {model_arch or '自动检测'}")
+    logger.info(f"类别数量: {num_classes}")
     
     try:
         # 创建模型加载器
         model_loader = create_model_loader(model_path, model_name)
         
-        # 加载模型
-        model_loader.load_model()
+        # 如果指定了模型架构，使用架构加载
+        if model_arch:
+            logger.info(f"使用指定架构加载: {model_arch}")
+            from app.model_architecture import create_model
+            
+            # 创建模型实例
+            model = create_model(model_arch, num_classes=num_classes)
+            
+            # 使用架构加载checkpoint
+            model_loader.load_checkpoint_with_architecture(model)
+        else:
+            # 尝试自动加载
+            try:
+                model_loader.load_model()
+            except RuntimeError as e:
+                error_msg = str(e)
+                if 'checkpoint' in error_msg.lower() or 'model_state' in error_msg.lower():
+                    logger.error("检测到checkpoint格式，需要指定模型架构")
+                    logger.error("请设置环境变量:")
+                    logger.error("  MODEL_ARCH=resnet18  (或其他模型名称)")
+                    logger.error("  NUM_CLASSES=10       (你的类别数量)")
+                    logger.error("\n可用的模型架构:")
+                    logger.error("  - resnet18")
+                    logger.error("  - efficientnet")
+                    logger.error("  - mobilenet")
+                    logger.error("  - simple_cnn")
+                    logger.error("  - custom_cnn (需要修改 model_architecture.py)")
+                raise
         
         logger.info("模型初始化成功")
     except Exception as e:

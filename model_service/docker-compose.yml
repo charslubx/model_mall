@@ -12,10 +12,18 @@ services:
       # 开发时可以挂载代码目录实现热重载
       # - ./app:/app/app
     environment:
-      - MODEL_PATH=/app/models/model.h5  # 修改为实际的模型文件名
+      # 模型文件配置
+      - MODEL_PATH=/app/models/checkpoint_best.pth  # ⚠️ 修改为你的checkpoint文件名
       - MODEL_NAME=image-classifier
+      
+      # ⚠️ 关键配置：对于checkpoint格式（只包含权重）必须指定以下两项
+      - MODEL_ARCH=resnet18     # 模型架构（resnet18, efficientnet, mobilenet, simple_cnn, custom_cnn等）
+      - NUM_CLASSES=10          # 分类类别数量（必须与训练时一致！）
+      
+      # 服务配置
       - PORT=5000
       - HOST=0.0.0.0
+      - DEVICE=cuda             # 使用GPU（cuda）或CPU（cpu），留空则自动检测
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/health"]

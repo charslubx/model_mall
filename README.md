@@ -4,9 +4,10 @@
 
 ---
 
-> 🎯 **PyTorch用户快速开始：** 如果你有PyTorch训练的模型文件 (.mph/.pt/.pth)，
+> 🎯 **PyTorch用户快速开始：**
 > 
-> 👉 **直接查看：[START_HERE_PYTORCH.md](START_HERE_PYTORCH.md) - 3步完成部署！**
+> - **完整模型** (.mph/.pt/.pth) → [START_HERE_PYTORCH.md](START_HERE_PYTORCH.md)
+> - **Checkpoint格式** (只有权重) → [QUICK_START_FOR_YOUR_MODEL.md](QUICK_START_FOR_YOUR_MODEL.md) ⭐
 
 ---
 
