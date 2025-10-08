@@ -22,3 +22,133 @@ type Response struct {
 	Message string      `json:"message"`
 	Data    interface{} `json:"data,omitempty"`
 }
+
+// ========== 图片上传相关 ==========
+
+type UploadImageReq struct {
+	ModelName string `form:"model_name,optional"` // 模型名称（可选）
+}
+
+type UploadImageResp struct {
+	ImageID  int64  `json:"image_id"`
+	TaskID   string `json:"task_id"`
+	FileURL  string `json:"file_url"`
+	Filename string `json:"filename"`
+}
+
+// ========== 识别任务相关 ==========
+
+type GetTaskStatusReq struct {
+	TaskID string `path:"task_id"` // 任务ID
+}
+
+type GetTaskStatusResp struct {
+	TaskID      string  `json:"task_id"`
+	ImageID     int64   `json:"image_id"`
+	Status      int16   `json:"status"`       // 0-待处理 1-处理中 2-已完成 3-失败
+	Progress    int     `json:"progress"`     // 0-100
+	ResultCount int     `json:"result_count"` // 识别结果数量
+	ErrorMsg    string  `json:"error_msg,omitempty"`
+	CreatedAt   string  `json:"created_at"`
+	CompletedAt string  `json:"completed_at,omitempty"`
+}
+
+type GetTaskListReq struct {
+	Page     int `form:"page,default=1"`
+	PageSize int `form:"page_size,default=10"`
+}
+
+type GetTaskListResp struct {
+	List  []TaskInfo `json:"list"`
+	Total int64      `json:"total"`
+	Page  int        `json:"page"`
+	Size  int        `json:"page_size"`
+}
+
+type TaskInfo struct {
+	TaskID      string  `json:"task_id"`
+	ImageID     int64   `json:"image_id"`
+	ModelName   string  `json:"model_name"`
+	Status      int16   `json:"status"`
+	Progress    int     `json:"progress"`
+	ResultCount int     `json:"result_count"`
+	CreatedAt   string  `json:"created_at"`
+	CompletedAt string  `json:"completed_at,omitempty"`
+}
+
+// ========== 分类标签相关 ==========
+
+type GetImageLabelsReq struct {
+	ImageID int64 `path:"image_id"` // 图片ID
+}
+
+type GetImageLabelsResp struct {
+	ImageID int64       `json:"image_id"`
+	Labels  []LabelInfo `json:"labels"`
+}
+
+type LabelInfo struct {
+	ID         int64                  `json:"id"`
+	LabelName  string                 `json:"label_name"`
+	LabelCode  string                 `json:"label_code,omitempty"`
+	Confidence float64                `json:"confidence"`
+	BBox       *BoundingBox           `json:"bbox,omitempty"`
+	ExtraData  map[string]interface{} `json:"extra_data,omitempty"`
+	CreatedAt  string                 `json:"created_at"`
+}
+
+type BoundingBox struct {
+	X      int `json:"x"`
+	Y      int `json:"y"`
+	Width  int `json:"width"`
+	Height int `json:"height"`
+}
+
+// ========== 模型回调相关 ==========
+
+type ModelCallbackReq struct {
+	TaskID   string              `json:"task_id"`
+	Status   string              `json:"status"`   // pending/processing/completed/failed
+	Progress int                 `json:"progress"` // 0-100
+	Results  []CallbackLabelInfo `json:"results,omitempty"`
+	Error    string              `json:"error,omitempty"`
+}
+
+type CallbackLabelInfo struct {
+	Name       string                 `json:"name"`
+	Code       string                 `json:"code,omitempty"`
+	Confidence float64                `json:"confidence"`
+	BBox       *BoundingBox           `json:"bbox,omitempty"`
+	Extra      map[string]interface{} `json:"extra,omitempty"`
+}
+
+type ModelCallbackResp struct {
+	Success bool   `json:"success"`
+	Message string `json:"message"`
+}
+
+// ========== 图片列表相关 ==========
+
+type GetImageListReq struct {
+	Page     int `form:"page,default=1"`
+	PageSize int `form:"page_size,default=10"`
+}
+
+type GetImageListResp struct {
+	List  []ImageInfo `json:"list"`
+	Total int64       `json:"total"`
+	Page  int         `json:"page"`
+	Size  int         `json:"page_size"`
+}
+
+type ImageInfo struct {
+	ID           int64  `json:"id"`
+	Filename     string `json:"filename"`
+	OriginalName string `json:"original_name"`
+	FileURL      string `json:"file_url"`
+	FileSize     int64  `json:"file_size"`
+	Width        int    `json:"width"`
+	Height       int    `json:"height"`
+	Status       int16  `json:"status"`
+	CreatedAt    string `json:"created_at"`
+}

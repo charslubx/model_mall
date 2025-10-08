@@ -9,13 +9,14 @@ import (
 )
 
 type ServiceContext struct {
-	Config      config.Config
-	LogHelper   *LogHelper
-	PGHelper    *PGHelper
-	MySqlHelper *MySqlHelper
-	RedisHelper *RedisHelper
-	OrmHelper   *OrmHelper
-	Repos       *repository.Repositories
+	Config             config.Config
+	LogHelper          *LogHelper
+	PGHelper           *PGHelper
+	MySqlHelper        *MySqlHelper
+	RedisHelper        *RedisHelper
+	OrmHelper          *OrmHelper
+	Repos              *repository.Repositories
+	ModelServiceClient *ModelServiceClient
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
@@ -59,6 +60,12 @@ func NewServiceContext(c config.Config) *ServiceContext {
 
 	// 初始化仓库层
 	svcCtx.Repos = repository.NewRepositories(ormHelper.GetDB())
+
+	// 初始化模型服务客户端
+	svcCtx.ModelServiceClient = NewModelServiceClient(
+		c.ModelService.BaseURL,
+		c.ModelService.APIKey,
+	)
 
 	return svcCtx
 }

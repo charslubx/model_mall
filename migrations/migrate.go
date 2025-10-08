@@ -119,6 +119,9 @@ func runGORMMigrations(db *gorm.DB) error {
 		&models.Role{},
 		&models.RolePermission{},
 		&models.User{},
+		&models.Image{},
+		&models.RecognitionTask{},
+		&models.ClassificationLabel{},
 	)
 	
 	if err != nil {

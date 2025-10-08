@@ -22,3 +22,12 @@ MySQL:
   Username: root
   Password: your-password  # 请修改为实际密码
   Database: model_mall
+ModelService:
+  BaseURL: http://localhost:8000  # 模型服务地址
+  APIKey: ""  # 模型服务API密钥
+  Timeout: 300  # 超时时间（秒）
+Upload:
+  MaxSize: 10485760  # 最大文件大小10MB
+  AllowedTypes: ".jpg,.jpeg,.png,.gif,.bmp,.webp"  # 允许的文件类型
+  StoragePath: "./uploads"  # 存储路径
+  BaseURL: "http://localhost:8888/uploads"  # 访问基础URL

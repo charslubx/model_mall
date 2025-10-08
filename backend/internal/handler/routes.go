@@ -4,6 +4,8 @@
 package handler
 
 import (
+	"net/http"
+
 	"model_mall_backend/backend/internal/middleware"
 	"model_mall_backend/backend/internal/svc"
 
@@ -27,6 +29,13 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 		//	Path:    "/api/register",
 		//	Handler: RegisterHandler(serverCtx),
 		//},
+		
+		// 模型服务回调接口（公开）
+		{
+			Method:  http.MethodPost,
+			Path:    "/api/model/callback",
+			Handler: ModelCallbackHandler(serverCtx),
+		},
 	})
 
 	// 需要认证的路由
@@ -37,7 +46,35 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 			//	Path:    "/api/user/info",
 			//	Handler: GetUserInfoHandler(serverCtx),
 			//},
-			// 其他需要认证的路由...
+			
+			// 图片相关接口
+			{
+				Method:  http.MethodPost,
+				Path:    "/api/images/upload",
+				Handler: UploadImageHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/api/images",
+				Handler: GetImageListHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/api/images/:image_id/labels",
+				Handler: GetImageLabelsHandler(serverCtx),
+			},
+			
+			// 识别任务相关接口
+			{
+				Method:  http.MethodGet,
+				Path:    "/api/tasks/:task_id/status",
+				Handler: GetTaskStatusHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/api/tasks",
+				Handler: GetTaskListHandler(serverCtx),
+			},
 		}, rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
 	)
 }
