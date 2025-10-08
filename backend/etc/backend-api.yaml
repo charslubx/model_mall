@@ -25,5 +25,5 @@ MySQL:
 Model:
   Name: image-classifier
   Version: v1.0
-  Type: local  # local 或 remote
-  Path: /path/to/model  # 本地模型路径或远程服务端点(例如: http://localhost:5000/classify)
+  Type: remote  # local 或 remote
+  Path: http://localhost:5000/classify  # 远程模型服务端点

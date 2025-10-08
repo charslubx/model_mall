@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  model-service:
+    build: .
+    container_name: model-service
+    ports:
+      - "5000:5000"
+    volumes:
+      # 挂载模型文件目录
+      - ./models:/app/models
+      # 开发时可以挂载代码目录实现热重载
+      # - ./app:/app/app
+    environment:
+      - MODEL_PATH=/app/models/model.h5  # 修改为实际的模型文件名
+      - MODEL_NAME=image-classifier
+      - PORT=5000
+      - HOST=0.0.0.0
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - model-network
+
+networks:
+  model-network:
+    driver: bridge
