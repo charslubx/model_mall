@@ -7,7 +7,9 @@
 > 🎯 **PyTorch用户快速开始：**
 > 
 > - **完整模型** (.mph/.pt/.pth) → [START_HERE_PYTORCH.md](START_HERE_PYTORCH.md)
-> - **Checkpoint格式** (只有权重) → [QUICK_START_FOR_YOUR_MODEL.md](QUICK_START_FOR_YOUR_MODEL.md) ⭐
+> - **Checkpoint格式** (只有权重):
+>   - 使用预训练模型（ResNet/EfficientNet等）→ [QUICK_START_FOR_YOUR_MODEL.md](QUICK_START_FOR_YOUR_MODEL.md)
+>   - **自定义/改过的模型** → [CUSTOM_MODEL_INTEGRATION.md](CUSTOM_MODEL_INTEGRATION.md) ⭐
 
 ---
 
