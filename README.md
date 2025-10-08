@@ -4,7 +4,9 @@
 
 ---
 
-> 🎯 **快速开始：[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - 3步部署你的PyTorch模型 ⭐
+> 🎯 **推荐：[SAVE_FULL_MODEL_GUIDE.md](SAVE_FULL_MODEL_GUIDE.md)** - 保存完整模型，部署超简单！⭐
+> 
+> 💡 **或者：[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - 使用Checkpoint部署（需要提供模型定义）
 
 ---
 
