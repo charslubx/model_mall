@@ -10,6 +10,7 @@ type Repositories struct {
 	Role           *RoleRepository
 	Permission     *PermissionRepository
 	RolePermission *RolePermissionRepository
+	Image          *ImageRepository
 }
 
 // NewRepositories 创建仓库集合
@@ -19,5 +20,6 @@ func NewRepositories(db *gorm.DB) *Repositories {
 		Role:           NewRoleRepository(db),
 		Permission:     NewPermissionRepository(db),
 		RolePermission: NewRolePermissionRepository(db),
+		Image:          NewImageRepository(db),
 	}
 }

@@ -22,3 +22,8 @@ MySQL:
   Username: root
   Password: your-password  # 请修改为实际密码
   Database: model_mall
+Model:
+  Name: image-classifier
+  Version: v1.0
+  Type: remote
+  Path: http://localhost:5000/classify
