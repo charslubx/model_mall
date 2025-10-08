@@ -36,45 +36,22 @@ model_service/
 └── README.md                  # 本文件
 ```
 
-## 🚀 快速开始（PyTorch模型）
+## 🚀 快速开始
 
-### 第一步：测试模型文件
-
-```bash
-# 测试你的.mph文件是否可以加载
-python test_pytorch_model.py /path/to/your/model.mph
-```
-
-这个测试会告诉你：
-- ✅ 模型是否可以直接使用
-- ⚠️ 还是需要先定义模型架构
-
-### 第二步：部署模型
-
-#### 情况A: 完整模型（推荐）
-
-如果测试通过，直接部署：
+### PyTorch Checkpoint模型（推荐方式）
 
 ```bash
-# 1. 复制模型文件
-cp /path/to/your/model.mph models/
-
-# 2. 准备标签文件
-cat > models/labels.txt << EOF
-类别1
-类别2
-类别3
-EOF
-
+# 1. 将模型类定义复制到 app/model_architecture.py
+# 2. 配置 docker-compose.yml
 # 3. 启动服务
+
+cp checkpoint_best.pth models/
 ./start_with_docker.sh
 ```
 
-#### 情况B: 权重文件（state_dict）
+详细步骤: [STEP_BY_STEP.md](STEP_BY_STEP.md)
 
-如果需要模型架构，参考 [PyTorch模型指南](PYTORCH_MODEL_GUIDE.md)
-
-2. **更新配置**
+### 配置文件
 
 编辑`docker-compose.yml`，修改环境变量：
 

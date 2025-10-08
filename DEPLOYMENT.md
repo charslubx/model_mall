@@ -1,46 +1,55 @@
 # 部署指南
 
-## 快速开始（5分钟部署）
+## 快速部署（适用于PyTorch Checkpoint模型）
 
-### 1. 准备模型文件
+### 前提条件
+- Docker 和 Docker Compose
+- PyTorch checkpoint文件（.pth/.pt/.mph）
+- 训练代码中的模型类定义
 
-```bash
-# 将你的 .mph 模型文件复制到模型目录
-cp /path/to/your/model.mph model_service/models/
+### 部署步骤
 
-# 准备分类标签文件
-cat > model_service/models/labels.txt << EOF
-cat
-dog
-bird
-horse
-cow
-EOF
+#### 1. 准备模型定义
+
+将训练代码中的模型类复制到：
+```
+/workspace/model_service/app/model_architecture.py
 ```
 
-### 2. 一键启动所有服务
+详细步骤参考: [CUSTOM_MODEL_INTEGRATION.md](CUSTOM_MODEL_INTEGRATION.md)
+
+#### 2. 配置环境
+
+编辑 `model_service/docker-compose.yml`:
+```yaml
+environment:
+  - MODEL_PATH=/app/models/checkpoint_best.pth
+  - MODEL_ARCH=my_model      # 你定义的模型名
+  - NUM_CLASSES=10           # 类别数量
+```
+
+#### 3. 准备文件和启动
 
 ```bash
+# 复制checkpoint
+cp checkpoint_best.pth model_service/models/
+
+# 创建标签文件
+cat > model_service/models/labels.txt << EOF
+类别1
+类别2
+...
+EOF
+
+# 一键启动
 ./start_all_services.sh
 ```
 
-这个脚本会自动：
-- ✅ 检查Docker环境
-- ✅ 启动PostgreSQL数据库
-- ✅ 启动Redis缓存
-- ✅ 运行数据库迁移
-- ✅ 启动Python模型服务
-- ✅ 验证所有服务健康状态
-
-### 3. 测试系统
+#### 4. 验证
 
 ```bash
-# 测试模型服务
 curl http://localhost:5000/health
-
-# 上传测试图片
-curl -X POST http://localhost:8888/api/images/upload \
-  -F "image=@test_image.jpg"
+curl -X POST http://localhost:8888/api/images/upload -F "image=@test.jpg"
 ```
 
 ## 详细部署步骤

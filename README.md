@@ -4,12 +4,7 @@
 
 ---
 
-> 🎯 **PyTorch用户快速开始：**
-> 
-> - **完整模型** (.mph/.pt/.pth) → [START_HERE_PYTORCH.md](START_HERE_PYTORCH.md)
-> - **Checkpoint格式** (只有权重):
->   - 使用预训练模型（ResNet/EfficientNet等）→ [QUICK_START_FOR_YOUR_MODEL.md](QUICK_START_FOR_YOUR_MODEL.md)
->   - **自定义/改过的模型** → [CUSTOM_MODEL_INTEGRATION.md](CUSTOM_MODEL_INTEGRATION.md) ⭐
+> 🎯 **快速开始：[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - 3步部署你的PyTorch模型 ⭐
 
 ---
 
@@ -38,33 +33,18 @@
 - Python 3.10+ （用于模型服务）
 - 训练好的模型文件（推荐：PyTorch .mph/.pt/.pth）
 
-### 一键部署
+### 快速部署（3步）
 
 ```bash
-# 1. 测试模型文件（PyTorch）
-cd model_service
-python test_pytorch_model.py /path/to/your/model.mph
+# 1. 复制模型定义到 model_service/app/model_architecture.py
+# 2. 配置 model_service/docker-compose.yml (MODEL_ARCH, NUM_CLASSES)
+# 3. 启动服务
 
-# 2. 准备模型文件
-cp /path/to/your/model.mph model_service/models/
-
-# 3. 准备标签文件
-cat > model_service/models/labels.txt << EOF
-类别1
-类别2
-类别3
-EOF
-
-# 4. 启动所有服务
-cd /workspace
+cp checkpoint_best.pth model_service/models/
 ./start_all_services.sh
-
-# 5. 测试系统
-curl http://localhost:5000/health
-curl -X POST http://localhost:8888/api/images/upload -F "image=@test.jpg"
 ```
 
-详细部署说明请查看 [DEPLOYMENT.md](DEPLOYMENT.md) 或 [PyTorch快速开始](PYTORCH_QUICKSTART.md)
+详细步骤查看 **[CUSTOM_MODEL_INTEGRATION.md](CUSTOM_MODEL_INTEGRATION.md)**
 
 ## 📋 项目结构说明
 
@@ -186,16 +166,13 @@ curl http://localhost:8888/api/images?page=1&page_size=10
 
 ## 📚 文档
 
-### 快速开始
-- **[PyTorch模型快速开始](PYTORCH_QUICKSTART.md)** - ⭐ PyTorch模型5分钟部署指南
-
-### 完整文档
-- **[部署指南](DEPLOYMENT.md)** - 完整的部署步骤
-- **[模型集成指南](MODEL_INTEGRATION_GUIDE.md)** - 如何集成你的模型
-- **[图片分类使用指南](IMAGE_CLASSIFICATION_GUIDE.md)** - API使用和功能说明
-- **[PyTorch模型详细指南](model_service/PYTORCH_MODEL_GUIDE.md)** - PyTorch模型完整说明
-- **[模型服务文档](model_service/README.md)** - Python模型服务详细说明
-- **[数据库设计](DATABASE_DESIGN.md)** - 数据库表结构设计
+### 核心文档
+- **[自定义模型集成](CUSTOM_MODEL_INTEGRATION.md)** - ⭐ PyTorch自定义模型部署
+- **[分步操作指南](model_service/STEP_BY_STEP.md)** - 详细操作步骤
+- **[部署指南](DEPLOYMENT.md)** - 完整部署流程
+- **[API使用指南](IMAGE_CLASSIFICATION_GUIDE.md)** - 接口文档和使用说明
+- **[模型服务文档](model_service/README.md)** - Python服务详细说明
+- **[数据库设计](DATABASE_DESIGN.md)** - 数据库表结构
 
 ## 🔧 配置
 
