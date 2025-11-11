@@ -49,19 +49,20 @@
             xAxis: {
                 type: 'category',
                 data: [
-                    'IF_ATM_Downtime',
+                    'IF_ATM_\nDowntime',
                     'True',
                     'IPCI-2H',
-                    'IF_12M-BOU_C_R',
-                    'IF_ATM_Lockout',
-                    'IF_ATM_Mainten',
-                    'TP230L-Remove_U'
+                    'IF_12M-BOU_\nC_R',
+                    'IF_ATM_\nLockout',
+                    'IF_ATM_\nMainten',
+                    'TP230L-\nRemove_U'
                 ],
                 axisLabel: {
-                    rotate: 30,
+                    rotate: 25,
                     interval: 0,
-                    fontSize: 11,
-                    color: '#666'
+                    fontSize: 10,
+                    color: '#666',
+                    lineHeight: 14
                 },
                 axisLine: {
                     lineStyle: {
@@ -125,27 +126,27 @@
                     },
                     itemStyle: {
                         borderRadius: 0
+                    },
+                    // 添加标记线（蓝色虚线）
+                    markLine: {
+                        silent: true,
+                        symbol: 'none',
+                        data: [
+                            {
+                                yAxis: 18,
+                                lineStyle: {
+                                    type: 'dashed',
+                                    color: '#72b4dd',
+                                    width: 2
+                                },
+                                label: {
+                                    show: false
+                                }
+                            }
+                        ]
                     }
                 }
             ],
-            // 添加标记线（蓝色虚线）
-            markLine: {
-                silent: true,
-                symbol: 'none',
-                data: [
-                    {
-                        yAxis: 18,
-                        lineStyle: {
-                            type: 'dashed',
-                            color: '#6ba7d6',
-                            width: 2
-                        },
-                        label: {
-                            show: false
-                        }
-                    }
-                ]
-            },
             // 添加文本标注（左侧的17）
             graphic: [
                 {
