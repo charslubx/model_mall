@@ -68,7 +68,10 @@
                     show: false  // 不显示 X 轴线
                 },
                 axisTick: {
-                    show: false
+                    show: true,  // 显示 X 轴刻度线
+                    lineStyle: {
+                        color: '#666'
+                    }
                 }
             },
             yAxis: {
@@ -89,6 +92,12 @@
                 },
                 axisLine: {
                     show: false  // 不显示 Y 轴线
+                },
+                axisTick: {
+                    show: true,  // 显示 Y 轴刻度线
+                    lineStyle: {
+                        color: '#666'
+                    }
                 },
                 splitLine: {
                     show: false  // 不显示 Y 轴网格线
