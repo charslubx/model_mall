@@ -119,10 +119,12 @@
                     label: {
                         show: true,
                         position: 'inside',  // 显示在柱子中间
-                        fontSize: 13,
+                        fontSize: 12,
                         color: '#ffffff',    // 白色字体
                         fontWeight: 'bold',
-                        formatter: '{c}'
+                        formatter: '{c}',
+                        overflow: 'none',    // 不截断
+                        distance: 0          // 距离柱子中心的偏移
                     },
                     itemStyle: {
                         borderRadius: 0
