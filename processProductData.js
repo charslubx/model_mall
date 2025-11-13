@@ -4,7 +4,7 @@
  *   res[0]: 包含 total_goal, raw, normal
  *   res[1]: 包含各个产品的 lot 数据（数量）
  *   res[2]: 包含各个产品的 lot 比率数据
- * @returns {Object} 合并后的产品数据对象
+ * @returns {Array} 包含产品数据的数组，每个元素包含 pg3（产品名）和 content（数据内容）
  */
 function processProductData(res) {
   // 验证输入
@@ -13,7 +13,7 @@ function processProductData(res) {
   }
 
   const [baseData, lotData, lotRatioData] = res;
-  const result = {};
+  const result = [];
 
   // 获取所有产品名称（从任何一个数据源中）
   const productNames = new Set([
@@ -24,20 +24,23 @@ function processProductData(res) {
 
   // 为每个产品构建合并后的数据结构
   productNames.forEach(productName => {
-    result[productName] = {
-      // 从 res[0] 保留 normal 和 raw
-      normal: baseData[productName]?.normal || {},
-      raw: baseData[productName]?.raw || {},
-      
-      // 从 res[1] 获取 lot 数据（数量数据）
-      lot: lotData[productName] || {},
-      
-      // 从 res[2] 获取 lotRaw 数据（比率数据）
-      lotRaw: lotRatioData[productName] || {},
-      
-      // 从 res[0] 获取 total_goal
-      total_goal: baseData[productName]?.total_goal || null
-    };
+    result.push({
+      pg3: productName,
+      content: {
+        // 从 res[0] 保留 normal 和 raw
+        normal: baseData[productName]?.normal || {},
+        raw: baseData[productName]?.raw || {},
+        
+        // 从 res[1] 获取 lot 数据（数量数据）
+        lot: lotData[productName] || {},
+        
+        // 从 res[2] 获取 lotRaw 数据（比率数据）
+        lotRaw: lotRatioData[productName] || {},
+        
+        // 从 res[0] 获取 total_goal
+        total_goal: baseData[productName]?.total_goal || null
+      }
+    });
   });
 
   return result;
