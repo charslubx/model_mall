@@ -1,11 +1,12 @@
 /**
- * 将嵌套对象数据转换为 ECharts 堆叠柱状图 series 配置
+ * 将嵌套对象数据转换为 ECharts 柱状图 series 配置
  * @param {Object} data - 原始数据对象
  * @param {Array} colors - 颜色数组 [color0, color1, color2, color3]
+ * @param {Number} type - 图表类型：1=堆叠柱状图, 2=分组柱状图
  * @param {Object} options - 可选配置
  * @returns {Array} ECharts series 配置数组
  */
-function formatStackedBarData(data, colors = ['#5470c6', '#91cc75', '#fac858', '#ee6666'], options = {}) {
+function formatStackedBarData(data, colors = ['#5470c6', '#91cc75', '#fac858', '#ee6666'], type = 1, options = {}) {
   const {
     // 定义数据类别的顺序（外层 key 的顺序）
     categoryOrder = [
@@ -17,7 +18,7 @@ function formatStackedBarData(data, colors = ['#5470c6', '#91cc75', '#fac858', '
       'IF_NON_XRB',
       'IF_EDISPOSE_REWORK'
     ],
-    // 定义堆叠层的配置（从下到上）
+    // 定义堆叠层的配置
     stackLayers = [
       { name: 'Assy', field: 'Assy', colorIndex: 0 },
       { name: 'Test_ATPO', field: 'test_atpo', colorIndex: 1 },
@@ -28,8 +29,11 @@ function formatStackedBarData(data, colors = ['#5470c6', '#91cc75', '#fac858', '
     showLabel = true
   } = options;
 
-  // 构建 series 数组（注意：需要倒序，因为 ECharts 堆叠是从数组开始往后叠加的）
-  const series = stackLayers.reverse().map(layer => {
+  // 根据类型决定是否需要倒序
+  const layers = type === 1 ? [...stackLayers].reverse() : stackLayers;
+
+  // 构建 series 数组
+  const series = layers.map(layer => {
     // 为每个类别提取对应的值
     const seriesData = categoryOrder.map(category => {
       const categoryData = data[category];
@@ -39,30 +43,50 @@ function formatStackedBarData(data, colors = ['#5470c6', '#91cc75', '#fac858', '
       return value !== undefined ? value : null;
     });
 
-    return {
+    // 基础配置
+    const seriesItem = {
       name: layer.name,
       type: 'bar',
-      stack: stackName,
-      emphasis: { focus: 'series' },
       itemStyle: { color: colors[layer.colorIndex] },
-      data: seriesData,
-      label: showLabel ? {
-        show: true,
-        position: 'inside',
-        color: '#000',
-        backgroundColor: 'rgba(255,255,255,0.65)',
-        borderRadius: 2,
-        padding: [1, 3],
-        textStyle: {
-          fontSize: 10,
-        },
-        formatter: p => {
-          const v = p.data;
-          if (v === null || v === undefined) return '';
-          return v >= 100 ? (v >= 1000 ? (v / 1000).toFixed(1) + 'k' : v) : '';
-        }
-      } : undefined
+      data: seriesData
     };
+
+    // type=1: 堆叠柱状图配置
+    if (type === 1) {
+      seriesItem.stack = stackName;
+      seriesItem.emphasis = { focus: 'series' };
+      
+      if (showLabel) {
+        seriesItem.label = {
+          show: true,
+          position: 'inside',
+          color: '#000',
+          backgroundColor: 'rgba(255,255,255,0.65)',
+          borderRadius: 2,
+          padding: [1, 3],
+          textStyle: {
+            fontSize: 10,
+          },
+          formatter: p => {
+            const v = p.data;
+            if (v === null || v === undefined) return '';
+            return v >= 100 ? (v >= 1000 ? (v / 1000).toFixed(1) + 'k' : v) : '';
+          }
+        };
+      }
+    }
+    // type=2: 分组柱状图配置
+    else if (type === 2) {
+      if (showLabel) {
+        seriesItem.label = {
+          show: true,
+          position: 'top',
+          formatter: '{c}'
+        };
+      }
+    }
+
+    return seriesItem;
   });
 
   return series;
@@ -128,20 +152,38 @@ const testData = {
 // 定义颜色（根据你的需求调整）
 const colors = ['#5470c6', '#91cc75', '#fac858', '#ee6666'];
 
-// 生成 series 配置
-const series = formatStackedBarData(testData, colors);
+// ========== 测试 Type 1: 堆叠柱状图 ==========
+console.log('========== Type 1: 堆叠柱状图 ==========');
+const seriesType1 = formatStackedBarData(testData, colors, 1);
+
+console.log('生成的 series 配置：');
+console.log(JSON.stringify(seriesType1, null, 2));
+
+console.log('\n数据验证 (Type 1):');
+seriesType1.forEach(s => {
+  console.log(`  ${s.name}: [${s.data.map(v => v === null ? 'null' : v).join(', ')}]`);
+});
+
+// ========== 测试 Type 2: 分组柱状图 ==========
+console.log('\n\n========== Type 2: 分组柱状图 ==========');
+const seriesType2 = formatStackedBarData(testData, colors, 2);
+
+console.log('生成的 series 配置：');
+console.log(JSON.stringify(seriesType2, null, 2));
+
+console.log('\n数据验证 (Type 2):');
+seriesType2.forEach(s => {
+  console.log(`  ${s.name}: [${s.data.map(v => v === null ? 'null' : v).join(', ')}]`);
+});
 
 // 生成 x 轴类别
 const xAxisData = getXAxisCategories(testData);
 
-console.log('生成的 series 配置：');
-console.log(JSON.stringify(series, null, 2));
-
 console.log('\n\nx 轴类别：');
 console.log(JSON.stringify(xAxisData, null, 2));
 
-console.log('\n\n完整的 ECharts 配置示例：');
-const completeOption = {
+console.log('\n\n========== 完整的 ECharts 配置示例 (Type 1) ==========');
+const completeOptionType1 = {
   tooltip: {
     trigger: 'axis',
     axisPointer: {
@@ -168,18 +210,43 @@ const completeOption = {
   yAxis: {
     type: 'value'
   },
-  series: series
+  series: seriesType1
 };
 
-console.log(JSON.stringify(completeOption, null, 2));
+console.log(JSON.stringify(completeOptionType1, null, 2));
 
-// 验证数据
-console.log('\n\n=== 数据验证 ===');
-series.forEach(s => {
-  console.log(`\n${s.name}:`);
-  console.log(`  数据: [${s.data.join(', ')}]`);
-  console.log(`  颜色: ${s.itemStyle.color}`);
-});
+console.log('\n\n========== 完整的 ECharts 配置示例 (Type 2) ==========');
+const completeOptionType2 = {
+  tooltip: {
+    trigger: 'axis',
+    axisPointer: {
+      type: 'shadow'
+    }
+  },
+  legend: {
+    data: ['Assy', 'Test_ATPO', 'Test_FPO', 'Finish']
+  },
+  grid: {
+    left: '3%',
+    right: '4%',
+    bottom: '3%',
+    containLabel: true
+  },
+  xAxis: {
+    type: 'category',
+    data: xAxisData,
+    axisLabel: {
+      rotate: 45,
+      interval: 0
+    }
+  },
+  yAxis: {
+    type: 'value'
+  },
+  series: seriesType2
+};
+
+console.log(JSON.stringify(completeOptionType2, null, 2));
 
 // 导出函数
 if (typeof module !== 'undefined' && module.exports) {
