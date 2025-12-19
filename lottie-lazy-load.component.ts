@@ -128,7 +128,7 @@ export class LottieLazyLoadComponent implements AfterViewInit, OnDestroy {
   imageAnchors: ImageAnchor[] = [
     {
       id: 'img1',
-      src: 'assets/img/img1.png',
+      src: 'img/img1.png',  // 使用 public 目录下的路径
       x: 300,
       y: 780,
       w: 150,
@@ -136,7 +136,7 @@ export class LottieLazyLoadComponent implements AfterViewInit, OnDestroy {
     },
     {
       id: 'img2',
-      src: 'assets/img/img2.png',
+      src: 'img/img2.png',
       x: 500,
       y: 600,
       w: 200,
@@ -144,7 +144,7 @@ export class LottieLazyLoadComponent implements AfterViewInit, OnDestroy {
     },
     {
       id: 'img3',
-      src: 'assets/img/img3.png',
+      src: 'img/img3.png',
       x: 800,
       y: 400,
       w: 180,
@@ -152,7 +152,7 @@ export class LottieLazyLoadComponent implements AfterViewInit, OnDestroy {
     },
     {
       id: 'img4',
-      src: 'assets/img/img4.png',
+      src: 'img/img4.png',
       x: 1200,
       y: 900,
       w: 160,
@@ -210,7 +210,8 @@ export class LottieLazyLoadComponent implements AfterViewInit, OnDestroy {
 
   private loadLottieWithProgress(): Promise<any> {
     return new Promise((resolve, reject) => {
-      this.http.get('assets/img/Christmas/bg.json', {
+      // 使用 public 目录下的路径
+      this.http.get('img/Christmas/bg.json', {
         reportProgress: true,
         observe: 'events',
         responseType: 'json'

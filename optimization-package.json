@@ -4,9 +4,11 @@
   "description": "Lottie 和图片优化工具",
   "scripts": {
     "optimize:images": "node optimize-images.js",
-    "optimize:lottie": "lottie-optimizer -i src/assets/img/Christmas/bg.json -o src/assets/img/Christmas/bg.optimized.json",
+    "optimize:lottie": "lottie-optimizer -i public/img/Christmas/bg.json -o public/img/Christmas/bg.optimized.json",
+    "optimize:lottie:aggressive": "lottie-optimizer -i public/img/Christmas/bg.json -o public/img/Christmas/bg.optimized.json --compress --precision 2",
     "optimize:all": "npm run optimize:lottie && npm run optimize:images",
-    "serve:compressed": "http-server dist -g -c-1 --gzip"
+    "serve:compressed": "http-server dist -g -c-1 --gzip",
+    "build:prod": "npm run optimize:all && ng build --configuration production"
   },
   "devDependencies": {
     "@lottiefiles/lottie-optimizer": "^1.0.2",

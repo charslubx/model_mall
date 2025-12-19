@@ -11,8 +11,8 @@ const sharp = require('sharp');
 
 // 配置
 const CONFIG = {
-  inputDir: './src/assets/img',          // 输入目录
-  outputDir: './src/assets/img/optimized', // 输出目录
+  inputDir: './public/img',               // 输入目录（修改为 public）
+  outputDir: './public/img/optimized',    // 输出目录（修改为 public）
   quality: 85,                            // 压缩质量 (1-100)
   formats: ['.png', '.jpg', '.jpeg'],     // 支持的格式
   convertToWebP: true,                    // 是否转换为 WebP
