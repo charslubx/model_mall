@@ -1,15 +1,1075 @@
 syntax = "v1"
 
-type Request {
-	Name string `path:"name,options=you|me"`
+info(
+	title: "智能服饰商城系统API"
+	desc: "智能服饰商城系统后端接口"
+	author: "开发团队"
+	version: "v1.0"
+)
+
+// ==================== 通用类型定义 ====================
+
+type BaseResponse {
+	Code    int         `json:"code"`
+	Message string      `json:"message"`
+	Data    interface{} `json:"data,omitempty"`
+	Error   string      `json:"error,omitempty"`
 }
 
-type Response {
-	Message string `json:"message"`
+type PageInfo {
+	Page       int `json:"page"`
+	PageSize   int `json:"pageSize"`
+	Total      int `json:"total"`
+	TotalPages int `json:"totalPages"`
 }
 
+// ==================== 认证模块 ====================
+
+type LoginRequest {
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required"`
+	UserType string `json:"userType" validate:"required,oneof=customer merchant"`
+}
+
+type RegisterRequest {
+	Name            string `json:"name" validate:"required"`
+	Email           string `json:"email" validate:"required,email"`
+	Password        string `json:"password" validate:"required,min=8"`
+	UserType        string `json:"userType" validate:"required,oneof=customer merchant"`
+	Phone           string `json:"phone,omitempty"`
+	MerchantName    string `json:"merchantName,omitempty"`
+	BusinessLicense string `json:"businessLicense,omitempty"`
+}
+
+type UserInfo {
+	Id         string `json:"id"`
+	Name       string `json:"name"`
+	Email      string `json:"email"`
+	Avatar     string `json:"avatar,omitempty"`
+	UserType   string `json:"userType"`
+	CreatedAt  string `json:"createdAt"`
+	Phone      string `json:"phone,omitempty"`
+	Status     string `json:"status,omitempty"`
+	LastLoginAt string `json:"lastLoginAt,omitempty"`
+}
+
+type LoginResponse {
+	Token        string   `json:"token"`
+	RefreshToken string   `json:"refreshToken"`
+	User         UserInfo `json:"user"`
+}
+
+type RefreshTokenRequest {
+	RefreshToken string `json:"refreshToken" validate:"required"`
+}
+
+type RefreshTokenResponse {
+	Token        string `json:"token"`
+	RefreshToken string `json:"refreshToken"`
+}
+
+type AdminLoginRequest {
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required"`
+}
+
+type AdminInfo {
+	Id          string   `json:"id"`
+	Name        string   `json:"name"`
+	Email       string   `json:"email"`
+	Role        string   `json:"role"`
+	Permissions []string `json:"permissions"`
+}
+
+type AdminLoginResponse {
+	Token string    `json:"token"`
+	Admin AdminInfo `json:"admin"`
+}
+
+// ==================== 商品模块 ====================
+
+type SellerInfo {
+	Id     string `json:"id"`
+	Name   string `json:"name"`
+	Avatar string `json:"avatar,omitempty"`
+	Rating float64 `json:"rating,omitempty"`
+}
+
+type ProductListItem {
+	Id       string     `json:"id"`
+	Name     string     `json:"name"`
+	Category string     `json:"category"`
+	Price    float64    `json:"price"`
+	Image    string     `json:"image"`
+	Rating   float64    `json:"rating"`
+	Sales    int        `json:"sales"`
+	Stock    int        `json:"stock"`
+	Tags     []string   `json:"tags"`
+	Seller   SellerInfo `json:"seller"`
+}
+
+type GetProductsRequest {
+	Page     int     `form:"page,optional,default=1"`
+	PageSize int     `form:"pageSize,optional,default=20"`
+	Category string  `form:"category,optional"`
+	Keyword  string  `form:"keyword,optional"`
+	SortBy   string  `form:"sortBy,optional"`
+	MinPrice float64 `form:"minPrice,optional"`
+	MaxPrice float64 `form:"maxPrice,optional"`
+}
+
+type GetProductsResponse {
+	Products   []ProductListItem `json:"products"`
+	Total      int               `json:"total"`
+	Page       int               `json:"page"`
+	PageSize   int               `json:"pageSize"`
+	TotalPages int               `json:"totalPages"`
+}
+
+type ColorOption {
+	Name  string `json:"name"`
+	Value string `json:"value"`
+	Hex   string `json:"hex"`
+}
+
+type Specifications {
+	Material string `json:"material,omitempty"`
+	Care     string `json:"care,omitempty"`
+}
+
+type RelatedProduct {
+	Id    string  `json:"id"`
+	Name  string  `json:"name"`
+	Price float64 `json:"price"`
+	Image string  `json:"image"`
+}
+
+type ProductDetail {
+	Id              string           `json:"id"`
+	Name            string           `json:"name"`
+	Description     string           `json:"description"`
+	Category        string           `json:"category"`
+	Price           float64          `json:"price"`
+	Stock           int              `json:"stock"`
+	Rating          float64          `json:"rating"`
+	Reviews         int              `json:"reviews"`
+	Images          []string         `json:"images"`
+	Colors          []ColorOption    `json:"colors,omitempty"`
+	Sizes           []string         `json:"sizes,omitempty"`
+	Tags            []string         `json:"tags"`
+	Features        []string         `json:"features,omitempty"`
+	Specifications  Specifications   `json:"specifications,omitempty"`
+	Seller          SellerInfo       `json:"seller"`
+	RelatedProducts []RelatedProduct `json:"relatedProducts,omitempty"`
+	CreatedAt       string           `json:"createdAt"`
+	UpdatedAt       string           `json:"updatedAt"`
+}
+
+type Category {
+	Id    string `json:"id"`
+	Name  string `json:"name"`
+	Slug  string `json:"slug"`
+	Count int    `json:"count"`
+	Icon  string `json:"icon,omitempty"`
+}
+
+type GetCategoriesResponse {
+	Categories []Category `json:"categories"`
+}
+
+type CreateProductRequest {
+	Name           string         `json:"name" validate:"required"`
+	Category       string         `json:"category" validate:"required"`
+	Price          float64        `json:"price" validate:"required,gt=0"`
+	Stock          int            `json:"stock" validate:"required,gte=0"`
+	Description    string         `json:"description,omitempty"`
+	Images         []string       `json:"images" validate:"required,min=1"`
+	Tags           []string       `json:"tags,omitempty"`
+	Colors         []ColorOption  `json:"colors,omitempty"`
+	Sizes          []string       `json:"sizes,omitempty"`
+	Features       []string       `json:"features,omitempty"`
+	Specifications Specifications `json:"specifications,omitempty"`
+}
+
+type CreateProductResponse {
+	Id        string `json:"id"`
+	Name      string `json:"name"`
+	Status    string `json:"status"`
+	CreatedAt string `json:"createdAt"`
+}
+
+type UpdateProductRequest {
+	Name           string         `json:"name,omitempty"`
+	Category       string         `json:"category,omitempty"`
+	Price          float64        `json:"price,omitempty"`
+	Stock          int            `json:"stock,omitempty"`
+	Description    string         `json:"description,omitempty"`
+	Images         []string       `json:"images,omitempty"`
+	Tags           []string       `json:"tags,omitempty"`
+	Colors         []ColorOption  `json:"colors,omitempty"`
+	Sizes          []string       `json:"sizes,omitempty"`
+	Features       []string       `json:"features,omitempty"`
+	Specifications Specifications `json:"specifications,omitempty"`
+}
+
+type UpdateProductResponse {
+	Id        string `json:"id"`
+	Updated   bool   `json:"updated"`
+	UpdatedAt string `json:"updatedAt"`
+}
+
+type GenerateTagsRequest {
+	ImageUrl string `json:"imageUrl" validate:"required"`
+	Category string `json:"category" validate:"required"`
+}
+
+type GenerateTagsResponse {
+	Tags []string `json:"tags"`
+}
+
+type MerchantProductItem {
+	Id        string   `json:"id"`
+	Name      string   `json:"name"`
+	Category  string   `json:"category"`
+	Price     float64  `json:"price"`
+	Stock     int      `json:"stock"`
+	Status    string   `json:"status"`
+	Image     string   `json:"image"`
+	Tags      []string `json:"tags"`
+	Sales     int      `json:"sales"`
+	CreatedAt string   `json:"createdAt"`
+}
+
+type GetMerchantProductsRequest {
+	Page     int    `form:"page,optional,default=1"`
+	PageSize int    `form:"pageSize,optional,default=20"`
+	Category string `form:"category,optional"`
+	Status   string `form:"status,optional"`
+	Keyword  string `form:"keyword,optional"`
+}
+
+type GetMerchantProductsResponse {
+	Products []MerchantProductItem `json:"products"`
+	Total    int                   `json:"total"`
+	Page     int                   `json:"page"`
+	PageSize int                   `json:"pageSize"`
+}
+
+// ==================== 购物车模块 ====================
+
+type CartItem {
+	Id         string  `json:"id"`
+	ProductId  string  `json:"productId"`
+	Name       string  `json:"name"`
+	Price      float64 `json:"price"`
+	Quantity   int     `json:"quantity"`
+	Color      string  `json:"color,omitempty"`
+	Size       string  `json:"size,omitempty"`
+	Image      string  `json:"image"`
+	Stock      int     `json:"stock"`
+	Selected   bool    `json:"selected"`
+}
+
+type GetCartResponse {
+	Items    []CartItem `json:"items"`
+	Subtotal float64    `json:"subtotal"`
+	Total    float64    `json:"total"`
+}
+
+type AddToCartRequest {
+	ProductId string `json:"productId" validate:"required"`
+	Color     string `json:"color,omitempty"`
+	Size      string `json:"size,omitempty"`
+	Quantity  int    `json:"quantity" validate:"required,gt=0"`
+}
+
+type AddToCartResponse {
+	Id        string `json:"id"`
+	ProductId string `json:"productId"`
+	Quantity  int    `json:"quantity"`
+}
+
+type UpdateCartRequest {
+	Quantity int `json:"quantity" validate:"required,gt=0"`
+}
+
+type UpdateCartResponse {
+	Id       string `json:"id"`
+	Quantity int    `json:"quantity"`
+}
+
+// ==================== 订单模块 ====================
+
+type OrderAddress {
+	Name     string `json:"name" validate:"required"`
+	Phone    string `json:"phone" validate:"required"`
+	Province string `json:"province" validate:"required"`
+	City     string `json:"city" validate:"required"`
+	District string `json:"district" validate:"required"`
+	Detail   string `json:"detail" validate:"required"`
+}
+
+type OrderItemInput {
+	ProductId string `json:"productId" validate:"required"`
+	Quantity  int    `json:"quantity" validate:"required,gt=0"`
+	Color     string `json:"color,omitempty"`
+	Size      string `json:"size,omitempty"`
+}
+
+type CreateOrderRequest {
+	Items         []OrderItemInput `json:"items" validate:"required,min=1"`
+	Address       OrderAddress     `json:"address" validate:"required"`
+	PaymentMethod string           `json:"paymentMethod" validate:"required,oneof=alipay wechat union"`
+	Note          string           `json:"note,omitempty"`
+}
+
+type CreateOrderResponse {
+	OrderId    string  `json:"orderId"`
+	OrderNo    string  `json:"orderNo"`
+	Total      float64 `json:"total"`
+	PaymentUrl string  `json:"paymentUrl"`
+}
+
+type OrderItemDetail {
+	ProductId string  `json:"productId"`
+	Name      string  `json:"name"`
+	Image     string  `json:"image"`
+	Quantity  int     `json:"quantity"`
+	Price     float64 `json:"price,omitempty"`
+	Color     string  `json:"color,omitempty"`
+	Size      string  `json:"size,omitempty"`
+}
+
+type OrderListItem {
+	Id         string            `json:"id"`
+	OrderNo    string            `json:"orderNo"`
+	Date       string            `json:"date"`
+	Status     string            `json:"status"`
+	StatusText string            `json:"statusText"`
+	Total      float64           `json:"total"`
+	ItemCount  int               `json:"itemCount"`
+	Items      []OrderItemDetail `json:"items"`
+}
+
+type GetOrdersRequest {
+	Page     int    `form:"page,optional,default=1"`
+	PageSize int    `form:"pageSize,optional,default=20"`
+	Status   string `form:"status,optional"`
+}
+
+type GetOrdersResponse {
+	Orders   []OrderListItem `json:"orders"`
+	Total    int             `json:"total"`
+	Page     int             `json:"page"`
+	PageSize int             `json:"pageSize"`
+}
+
+type ShippingInfo {
+	Method          string `json:"method"`
+	Address         string `json:"address"`
+	Recipient       string `json:"recipient"`
+	Phone           string `json:"phone"`
+	TrackingNumber  string `json:"trackingNumber,omitempty"`
+	ShippingCompany string `json:"shippingCompany,omitempty"`
+}
+
+type PaymentInfo {
+	Method     string  `json:"method"`
+	MethodText string  `json:"methodText"`
+	Subtotal   float64 `json:"subtotal"`
+	Shipping   float64 `json:"shipping"`
+	Tax        float64 `json:"tax"`
+	Total      float64 `json:"total"`
+	PaidAt     string  `json:"paidAt,omitempty"`
+}
+
+type TimelineItem {
+	Date        string `json:"date"`
+	Status      string `json:"status"`
+	Description string `json:"description"`
+}
+
+type OrderItemFull {
+	Id        string  `json:"id"`
+	ProductId string  `json:"productId"`
+	Name      string  `json:"name"`
+	Price     float64 `json:"price"`
+	Quantity  int     `json:"quantity"`
+	Color     string  `json:"color,omitempty"`
+	Size      string  `json:"size,omitempty"`
+	Image     string  `json:"image"`
+}
+
+type OrderDetail {
+	Id         string          `json:"id"`
+	OrderNo    string          `json:"orderNo"`
+	Date       string          `json:"date"`
+	Status     string          `json:"status"`
+	StatusText string          `json:"statusText"`
+	Items      []OrderItemFull `json:"items"`
+	Shipping   ShippingInfo    `json:"shipping"`
+	Payment    PaymentInfo     `json:"payment"`
+	Timeline   []TimelineItem  `json:"timeline"`
+}
+
+type PayOrderRequest {
+	PaymentMethod string `json:"paymentMethod" validate:"required,oneof=alipay wechat union"`
+}
+
+type PayOrderResponse {
+	PaymentUrl string `json:"paymentUrl"`
+	OrderNo    string `json:"orderNo"`
+	QrCode     string `json:"qrCode,omitempty"`
+}
+
+type CancelOrderRequest {
+	Reason string `json:"reason,omitempty"`
+}
+
+type CancelOrderResponse {
+	Success      bool    `json:"success"`
+	RefundStatus string  `json:"refundStatus"`
+	RefundAmount float64 `json:"refundAmount"`
+}
+
+type CustomerInfo {
+	Name   string `json:"name"`
+	Avatar string `json:"avatar,omitempty"`
+}
+
+type MerchantOrderItem {
+	Id       string            `json:"id"`
+	OrderNo  string            `json:"orderNo"`
+	Customer CustomerInfo      `json:"customer"`
+	Date     string            `json:"date"`
+	Status   string            `json:"status"`
+	StatusText string          `json:"statusText"`
+	Total    float64           `json:"total"`
+	Items    []OrderItemDetail `json:"items"`
+	Payment  string            `json:"payment"`
+	Address  string            `json:"address"`
+}
+
+type GetMerchantOrdersResponse {
+	Orders   []MerchantOrderItem `json:"orders"`
+	Total    int                 `json:"total"`
+	Page     int                 `json:"page"`
+	PageSize int                 `json:"pageSize"`
+}
+
+type ShipOrderRequest {
+	TrackingNumber  string `json:"trackingNumber" validate:"required"`
+	ShippingCompany string `json:"shippingCompany" validate:"required"`
+}
+
+type ShipOrderResponse {
+	Success   bool   `json:"success"`
+	Status    string `json:"status"`
+	ShippedAt string `json:"shippedAt"`
+}
+
+// ==================== 用户个人中心模块 ====================
+
+type AddressInfo {
+	Id        string `json:"id"`
+	Name      string `json:"name"`
+	Phone     string `json:"phone"`
+	Province  string `json:"province"`
+	City      string `json:"city"`
+	District  string `json:"district"`
+	Detail    string `json:"detail"`
+	IsDefault bool   `json:"isDefault"`
+}
+
+type UserProfile {
+	Id        string        `json:"id"`
+	Name      string        `json:"name"`
+	Email     string        `json:"email"`
+	Phone     string        `json:"phone,omitempty"`
+	Avatar    string        `json:"avatar,omitempty"`
+	Gender    string        `json:"gender,omitempty"`
+	Birthday  string        `json:"birthday,omitempty"`
+	CreatedAt string        `json:"createdAt"`
+	Addresses []AddressInfo `json:"addresses,omitempty"`
+}
+
+type UpdateProfileRequest {
+	Name     string `json:"name,omitempty"`
+	Email    string `json:"email,omitempty"`
+	Phone    string `json:"phone,omitempty"`
+	Gender   string `json:"gender,omitempty"`
+	Birthday string `json:"birthday,omitempty"`
+}
+
+type UpdateProfileResponse {
+	Success bool     `json:"success"`
+	User    UserInfo `json:"user"`
+}
+
+type UploadAvatarResponse {
+	AvatarUrl string `json:"avatarUrl"`
+}
+
+type ChangePasswordRequest {
+	OldPassword string `json:"oldPassword" validate:"required"`
+	NewPassword string `json:"newPassword" validate:"required,min=8"`
+}
+
+// ==================== 商户管理模块 ====================
+
+type MerchantDashboard {
+	ProductsCount  int     `json:"productsCount"`
+	SalesCount     int     `json:"salesCount"`
+	Revenue        float64 `json:"revenue"`
+	OrdersCount    int     `json:"ordersCount"`
+	PendingOrders  int     `json:"pendingOrders"`
+	TodaySales     float64 `json:"todaySales"`
+	TodayOrders    int     `json:"todayOrders"`
+}
+
+type SalesDataPoint {
+	Date   string  `json:"date"`
+	Sales  float64 `json:"sales"`
+	Orders int     `json:"orders"`
+}
+
+type CategorySales {
+	Category   string  `json:"category"`
+	Sales      int     `json:"sales"`
+	Percentage int     `json:"percentage"`
+	Revenue    float64 `json:"revenue"`
+}
+
+type TopProduct {
+	Id      string  `json:"id"`
+	Name    string  `json:"name"`
+	Sales   int     `json:"sales"`
+	Revenue float64 `json:"revenue"`
+	Image   string  `json:"image"`
+}
+
+type GetAnalyticsRequest {
+	TimeRange string `form:"timeRange,optional,default=7days"`
+}
+
+type MerchantAnalytics {
+	SalesData     []SalesDataPoint `json:"salesData"`
+	CategorySales []CategorySales  `json:"categorySales"`
+	TopProducts   []TopProduct     `json:"topProducts"`
+}
+
+type MerchantProfile {
+	Id           string  `json:"id"`
+	Name         string  `json:"name"`
+	Avatar       string  `json:"avatar,omitempty"`
+	Description  string  `json:"description,omitempty"`
+	ProductsCount int    `json:"productsCount"`
+	SalesCount   int     `json:"salesCount"`
+	Rating       float64 `json:"rating"`
+	ReviewsCount int     `json:"reviewsCount"`
+	CreatedAt    string  `json:"createdAt"`
+}
+
+type UpdateMerchantProfileRequest {
+	Name        string `json:"name,omitempty"`
+	Description string `json:"description,omitempty"`
+	Avatar      string `json:"avatar,omitempty"`
+}
+
+// ==================== 卖家店铺模块 ====================
+
+type SellerDetail {
+	Id           string `json:"id"`
+	Name         string `json:"name"`
+	Avatar       string `json:"avatar,omitempty"`
+	Description  string `json:"description,omitempty"`
+	TotalSales   int    `json:"totalSales"`
+	Rating       float64 `json:"rating"`
+	ReviewsCount int    `json:"reviewsCount"`
+	JoinDate     string `json:"joinDate"`
+	ProductsCount int   `json:"productsCount"`
+}
+
+type GetSellerProductsRequest {
+	Page     int    `form:"page,optional,default=1"`
+	PageSize int    `form:"pageSize,optional,default=20"`
+	Category string `form:"category,optional"`
+	SortBy   string `form:"sortBy,optional"`
+}
+
+type GetSellerProductsResponse {
+	Products []ProductListItem `json:"products"`
+	Total    int               `json:"total"`
+	Page     int               `json:"page"`
+	PageSize int               `json:"pageSize"`
+}
+
+// ==================== 系统管理模块 ====================
+
+type AdminDashboard {
+	TotalUsers     int     `json:"totalUsers"`
+	TotalMerchants int     `json:"totalMerchants"`
+	TotalCustomers int     `json:"totalCustomers"`
+	TotalOrders    int     `json:"totalOrders"`
+	TotalRevenue   float64 `json:"totalRevenue"`
+	TotalProducts  int     `json:"totalProducts"`
+	TodayOrders    int     `json:"todayOrders"`
+	TodayRevenue   float64 `json:"todayRevenue"`
+	ActiveUsers    int     `json:"activeUsers"`
+}
+
+type GetAdminUsersRequest {
+	Page     int    `form:"page,optional,default=1"`
+	PageSize int    `form:"pageSize,optional,default=20"`
+	Type     string `form:"type,optional"`
+	Status   string `form:"status,optional"`
+	Keyword  string `form:"keyword,optional"`
+}
+
+type AdminUserListItem {
+	Id           string  `json:"id"`
+	Name         string  `json:"name"`
+	Email        string  `json:"email"`
+	Type         string  `json:"type"`
+	Status       string  `json:"status"`
+	RegisterDate string  `json:"registerDate"`
+	LastLogin    string  `json:"lastLogin"`
+	Avatar       string  `json:"avatar,omitempty"`
+	OrderCount   int     `json:"orderCount"`
+	TotalSpent   float64 `json:"totalSpent"`
+}
+
+type GetAdminUsersResponse {
+	Users    []AdminUserListItem `json:"users"`
+	Total    int                 `json:"total"`
+	Page     int                 `json:"page"`
+	PageSize int                 `json:"pageSize"`
+}
+
+type RecentOrder {
+	OrderNo string  `json:"orderNo"`
+	Date    string  `json:"date"`
+	Total   float64 `json:"total"`
+	Status  string  `json:"status"`
+}
+
+type AdminUserDetail {
+	Id           string        `json:"id"`
+	Name         string        `json:"name"`
+	Email        string        `json:"email"`
+	Phone        string        `json:"phone,omitempty"`
+	Type         string        `json:"type"`
+	Status       string        `json:"status"`
+	RegisterDate string        `json:"registerDate"`
+	LastLogin    string        `json:"lastLogin"`
+	Avatar       string        `json:"avatar,omitempty"`
+	OrderCount   int           `json:"orderCount"`
+	TotalSpent   float64       `json:"totalSpent"`
+	RecentOrders []RecentOrder `json:"recentOrders"`
+}
+
+type UpdateUserStatusRequest {
+	Status string `json:"status" validate:"required,oneof=active disabled"`
+	Reason string `json:"reason,omitempty"`
+}
+
+type UpdateUserStatusResponse {
+	Success bool   `json:"success"`
+	Status  string `json:"status"`
+}
+
+type TagAnalytics {
+	Name       string `json:"name"`
+	Count      int    `json:"count"`
+	Percentage int    `json:"percentage,omitempty"`
+	Growth     int    `json:"growth,omitempty"`
+}
+
+type CategoryTagAnalytics {
+	Category string   `json:"category"`
+	TopTags  []string `json:"topTags"`
+}
+
+type GetTagAnalyticsResponse {
+	TopTags       []TagAnalytics         `json:"topTags"`
+	TagsByCategory []CategoryTagAnalytics `json:"tagsByCategory"`
+	TagGrowth     []TagAnalytics         `json:"tagGrowth"`
+}
+
+type OrderStatusAnalytics {
+	Status     string `json:"status"`
+	Count      int    `json:"count"`
+	Percentage int    `json:"percentage"`
+}
+
+type OrderPaymentAnalytics {
+	Method     string `json:"method"`
+	Count      int    `json:"count"`
+	Percentage int    `json:"percentage"`
+}
+
+type RecentSalesData {
+	Date   string  `json:"date"`
+	Sales  float64 `json:"sales"`
+	Orders int     `json:"orders"`
+}
+
+type TopCategoryData {
+	Category   string  `json:"category"`
+	Sales      float64 `json:"sales"`
+	Percentage int     `json:"percentage"`
+}
+
+type GetOrderAnalyticsRequest {
+	TimeRange string `form:"timeRange,optional,default=7days"`
+}
+
+type OrderAnalytics {
+	OrdersByStatus  []OrderStatusAnalytics  `json:"ordersByStatus"`
+	OrdersByPayment []OrderPaymentAnalytics `json:"ordersByPayment"`
+	RecentSales     []RecentSalesData       `json:"recentSales"`
+	TopCategories   []TopCategoryData       `json:"topCategories"`
+}
+
+// ==================== 文件上传模块 ====================
+
+type UploadImageResponse {
+	Url          string `json:"url"`
+	ThumbnailUrl string `json:"thumbnailUrl,omitempty"`
+	Width        int    `json:"width"`
+	Height       int    `json:"height"`
+	Size         int64  `json:"size"`
+}
+
+type UploadFileResponse {
+	Url      string `json:"url"`
+	Filename string `json:"filename"`
+	Size     int64  `json:"size"`
+	MimeType string `json:"mimeType"`
+}
+
+// ==================== 搜索与推荐模块 ====================
+
+type SearchRequest {
+	Keyword  string  `form:"keyword" validate:"required"`
+	Category string  `form:"category,optional"`
+	MinPrice float64 `form:"minPrice,optional"`
+	MaxPrice float64 `form:"maxPrice,optional"`
+	SortBy   string  `form:"sortBy,optional"`
+	Page     int     `form:"page,optional,default=1"`
+	PageSize int     `form:"pageSize,optional,default=20"`
+}
+
+type SearchResponse {
+	Products []ProductListItem `json:"products"`
+	Total    int               `json:"total"`
+	Page     int               `json:"page"`
+	PageSize int               `json:"pageSize"`
+	Keyword  string            `json:"keyword"`
+}
+
+type GetRecommendationsRequest {
+	ProductId string `form:"productId,optional"`
+	UserId    string `form:"userId,optional"`
+	Limit     int    `form:"limit,optional,default=10"`
+}
+
+type RecommendationProduct {
+	Id     string  `json:"id"`
+	Name   string  `json:"name"`
+	Price  float64 `json:"price"`
+	Image  string  `json:"image"`
+	Rating float64 `json:"rating"`
+	Reason string  `json:"reason,omitempty"`
+}
+
+type GetRecommendationsResponse {
+	Products []RecommendationProduct `json:"products"`
+}
+
+type BannerItem {
+	Id    string `json:"id"`
+	Image string `json:"image"`
+	Title string `json:"title"`
+	Link  string `json:"link"`
+	Order int    `json:"order"`
+}
+
+type GetCarouselResponse {
+	Banners []BannerItem `json:"banners"`
+}
+
+// ==================== API路由定义 ====================
+
+@server(
+	group: auth
+	prefix: /api
+)
 service backend-api {
-	@handler BackendHandler
-	get /from/:name (Request) returns (Response)
+	@doc "用户登录"
+	@handler Login
+	post /auth/login (LoginRequest) returns (LoginResponse)
+	
+	@doc "用户注册"
+	@handler Register
+	post /auth/register (RegisterRequest) returns (LoginResponse)
+	
+	@doc "刷新令牌"
+	@handler RefreshToken
+	post /auth/refresh (RefreshTokenRequest) returns (RefreshTokenResponse)
+	
+	@doc "管理员登录"
+	@handler AdminLogin
+	post /auth/admin/login (AdminLoginRequest) returns (AdminLoginResponse)
 }
 
+@server(
+	group: auth
+	prefix: /api
+	jwt: Auth
+)
+service backend-api {
+	@doc "用户登出"
+	@handler Logout
+	post /auth/logout returns (BaseResponse)
+	
+	@doc "获取当前用户信息"
+	@handler GetCurrentUser
+	get /auth/user returns (UserInfo)
+}
+
+@server(
+	group: product
+	prefix: /api
+)
+service backend-api {
+	@doc "获取商品列表"
+	@handler GetProducts
+	get /products (GetProductsRequest) returns (GetProductsResponse)
+	
+	@doc "获取商品详情"
+	@handler GetProductDetail
+	get /products/:id returns (ProductDetail)
+	
+	@doc "获取商品分类列表"
+	@handler GetCategories
+	get /categories returns (GetCategoriesResponse)
+}
+
+@server(
+	group: product
+	prefix: /api
+	jwt: Auth
+	middleware: JWTMiddleware
+)
+service backend-api {
+	@doc "创建商品（商户）"
+	@handler CreateProduct
+	post /products (CreateProductRequest) returns (CreateProductResponse)
+	
+	@doc "更新商品（商户）"
+	@handler UpdateProduct
+	put /products/:id (UpdateProductRequest) returns (UpdateProductResponse)
+	
+	@doc "删除商品（商户）"
+	@handler DeleteProduct
+	delete /products/:id returns (BaseResponse)
+	
+	@doc "获取商户商品列表"
+	@handler GetMerchantProducts
+	get /merchant/products (GetMerchantProductsRequest) returns (GetMerchantProductsResponse)
+	
+	@doc "AI生成商品标签"
+	@handler GenerateTags
+	post /products/generate-tags (GenerateTagsRequest) returns (GenerateTagsResponse)
+}
+
+@server(
+	group: cart
+	prefix: /api
+	jwt: Auth
+)
+service backend-api {
+	@doc "获取购物车列表"
+	@handler GetCart
+	get /cart returns (GetCartResponse)
+	
+	@doc "添加商品到购物车"
+	@handler AddToCart
+	post /cart (AddToCartRequest) returns (AddToCartResponse)
+	
+	@doc "更新购物车商品数量"
+	@handler UpdateCart
+	put /cart/:itemId (UpdateCartRequest) returns (UpdateCartResponse)
+	
+	@doc "删除购物车商品"
+	@handler DeleteCartItem
+	delete /cart/:itemId returns (BaseResponse)
+	
+	@doc "清空购物车"
+	@handler ClearCart
+	delete /cart returns (BaseResponse)
+}
+
+@server(
+	group: order
+	prefix: /api
+	jwt: Auth
+)
+service backend-api {
+	@doc "创建订单"
+	@handler CreateOrder
+	post /orders (CreateOrderRequest) returns (CreateOrderResponse)
+	
+	@doc "获取订单列表"
+	@handler GetOrders
+	get /orders (GetOrdersRequest) returns (GetOrdersResponse)
+	
+	@doc "获取订单详情"
+	@handler GetOrderDetail
+	get /orders/:id returns (OrderDetail)
+	
+	@doc "支付订单"
+	@handler PayOrder
+	post /orders/:id/pay (PayOrderRequest) returns (PayOrderResponse)
+	
+	@doc "取消订单"
+	@handler CancelOrder
+	put /orders/:id/cancel (CancelOrderRequest) returns (CancelOrderResponse)
+	
+	@doc "获取商户订单列表"
+	@handler GetMerchantOrders
+	get /merchant/orders (GetOrdersRequest) returns (GetMerchantOrdersResponse)
+	
+	@doc "商户发货"
+	@handler ShipOrder
+	put /merchant/orders/:id/ship (ShipOrderRequest) returns (ShipOrderResponse)
+}
+
+@server(
+	group: user
+	prefix: /api
+	jwt: Auth
+)
+service backend-api {
+	@doc "获取用户资料"
+	@handler GetProfile
+	get /user/profile returns (UserProfile)
+	
+	@doc "更新用户资料"
+	@handler UpdateProfile
+	put /user/profile (UpdateProfileRequest) returns (UpdateProfileResponse)
+	
+	@doc "上传用户头像"
+	@handler UploadAvatar
+	post /user/avatar returns (UploadAvatarResponse)
+	
+	@doc "修改密码"
+	@handler ChangePassword
+	put /user/password (ChangePasswordRequest) returns (BaseResponse)
+	
+	@doc "获取用户订单历史"
+	@handler GetUserOrders
+	get /user/orders (GetOrdersRequest) returns (GetOrdersResponse)
+}
+
+@server(
+	group: merchant
+	prefix: /api
+	jwt: Auth
+)
+service backend-api {
+	@doc "获取商户数据统计"
+	@handler GetMerchantDashboard
+	get /merchant/dashboard returns (MerchantDashboard)
+	
+	@doc "获取商户数据分析"
+	@handler GetMerchantAnalytics
+	get /merchant/analytics (GetAnalyticsRequest) returns (MerchantAnalytics)
+	
+	@doc "获取商户信息"
+	@handler GetMerchantProfile
+	get /merchant/profile returns (MerchantProfile)
+	
+	@doc "更新商户信息"
+	@handler UpdateMerchantProfile
+	put /merchant/profile (UpdateMerchantProfileRequest) returns (BaseResponse)
+}
+
+@server(
+	group: seller
+	prefix: /api
+)
+service backend-api {
+	@doc "获取卖家信息"
+	@handler GetSellerInfo
+	get /sellers/:id returns (SellerDetail)
+	
+	@doc "获取卖家商品列表"
+	@handler GetSellerProducts
+	get /sellers/:id/products (GetSellerProductsRequest) returns (GetSellerProductsResponse)
+}
+
+@server(
+	group: admin
+	prefix: /api
+	jwt: Auth
+)
+service backend-api {
+	@doc "获取系统数据统计"
+	@handler GetAdminDashboard
+	get /admin/dashboard returns (AdminDashboard)
+	
+	@doc "获取用户列表"
+	@handler GetAdminUsers
+	get /admin/users (GetAdminUsersRequest) returns (GetAdminUsersResponse)
+	
+	@doc "获取用户详情"
+	@handler GetAdminUserDetail
+	get /admin/users/:id returns (AdminUserDetail)
+	
+	@doc "更新用户状态"
+	@handler UpdateUserStatus
+	put /admin/users/:id/status (UpdateUserStatusRequest) returns (UpdateUserStatusResponse)
+	
+	@doc "获取标签分析数据"
+	@handler GetTagAnalytics
+	get /admin/tags/analytics returns (GetTagAnalyticsResponse)
+	
+	@doc "获取订单分析数据"
+	@handler GetOrderAnalytics
+	get /admin/orders/analytics (GetOrderAnalyticsRequest) returns (OrderAnalytics)
+}
+
+@server(
+	group: upload
+	prefix: /api
+	jwt: Auth
+)
+service backend-api {
+	@doc "上传图片"
+	@handler UploadImage
+	post /upload/image returns (UploadImageResponse)
+	
+	@doc "上传文件"
+	@handler UploadFile
+	post /upload/file returns (UploadFileResponse)
+}
+
+@server(
+	group: search
+	prefix: /api
+)
+service backend-api {
+	@doc "全局搜索商品"
+	@handler Search
+	get /search (SearchRequest) returns (SearchResponse)
+	
+	@doc "获取推荐商品"
+	@handler GetRecommendations
+	get /recommendations (GetRecommendationsRequest) returns (GetRecommendationsResponse)
+	
+	@doc "获取轮播图数据"
+	@handler GetCarousel
+	get /carousel returns (GetCarouselResponse)
+}
