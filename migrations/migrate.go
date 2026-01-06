@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -9,18 +8,27 @@ import (
 	"sort"
 	"strings"
 
-	"model_mall_backend/backend/internal/config"
-	"model_mall_backend/backend/internal/models"
-
 	"github.com/zeromicro/go-zero/core/conf"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
 
+// Config 迁移工具最小配置（从 ../backend/etc/backend-api.yaml 加载）
+type Config struct {
+	PostgreSQL struct {
+		Host     string
+		Port     int
+		Username string
+		Password string
+		Database string
+		SSLMode  string
+	}
+}
+
 func main() {
 	// 加载配置
-	var c config.Config
+	var c Config
 	conf.MustLoad("../backend/etc/backend-api.yaml", &c)
 
 	// 连接数据库
@@ -39,16 +47,11 @@ func main() {
 		log.Fatalf("SQL迁移失败: %v", err)
 	}
 
-	// 方式2：使用GORM自动迁移（可选，用于验证表结构）
-	if err := runGORMMigrations(db); err != nil {
-		log.Fatalf("GORM迁移失败: %v", err)
-	}
-
 	fmt.Println("数据库迁移完成！")
 }
 
 // 连接数据库
-func connectDB(c *config.Config) (*gorm.DB, error) {
+func connectDB(c *Config) (*gorm.DB, error) {
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=%s",
 		c.PostgreSQL.Host,
 		c.PostgreSQL.Username,
@@ -76,7 +79,7 @@ func runSQLMigrations(db *gorm.DB) error {
 
 	for _, file := range files {
 		fmt.Printf("执行迁移文件: %s\n", file)
-		
+
 		// 读取SQL文件内容
 		content, err := ioutil.ReadFile(file)
 		if err != nil {
@@ -85,7 +88,7 @@ func runSQLMigrations(db *gorm.DB) error {
 
 		// 分割SQL语句（以分号分隔）
 		sqlStatements := strings.Split(string(content), ";")
-		
+
 		for _, stmt := range sqlStatements {
 			stmt = strings.TrimSpace(stmt)
 			if stmt == "" || strings.HasPrefix(stmt, "--") {
@@ -102,33 +105,10 @@ func runSQLMigrations(db *gorm.DB) error {
 				return fmt.Errorf("执行SQL失败 [%s]: %v", file, err)
 			}
 		}
-		
+
 		fmt.Printf("✓ %s 执行完成\n", file)
 	}
 
-	return nil
-}
-
-// 使用GORM自动迁移（验证表结构）
-func runGORMMigrations(db *gorm.DB) error {
-	fmt.Println("验证表结构...")
-	
-	// 自动迁移表结构
-	err := db.AutoMigrate(
-		&models.Permission{},
-		&models.Role{},
-		&models.RolePermission{},
-		&models.User{},
-		&models.Image{},
-		&models.RecognitionTask{},
-		&models.ClassificationLabel{},
-	)
-	
-	if err != nil {
-		return fmt.Errorf("GORM自动迁移失败: %v", err)
-	}
-	
-	fmt.Println("✓ 表结构验证完成")
 	return nil
 }
 

@@ -87,11 +87,11 @@ func (l *ImageLogic) UploadImage(r *http.Request, req *types.UploadImageReq) (*t
 	// 生成文件名
 	ext := filepath.Ext(fileHeader.Filename)
 	filename := fmt.Sprintf("%s%s", uuid.New().String(), ext)
-	
+
 	// 按日期组织存储路径
 	dateDir := time.Now().Format("2006/01/02")
 	storageDir := filepath.Join(l.svcCtx.Config.Upload.StoragePath, dateDir)
-	
+
 	// 确保目录存在
 	if err := os.MkdirAll(storageDir, 0755); err != nil {
 		return nil, fmt.Errorf("创建存储目录失败: %w", err)
@@ -196,28 +196,42 @@ func (l *ImageLogic) getUserIDFromContext() int64 {
 	// 从context中获取用户ID
 	// 这里需要根据实际的JWT中间件实现来获取
 	// 示例：
-	userIDVal := l.ctx.Value("user_id")
-	if userIDVal == nil {
-		return 0
+	// 兼容不同中间件写入的 key：user_id / userId
+	for _, key := range []string{"user_id", "userId"} {
+		userIDVal := l.ctx.Value(key)
+		if userIDVal == nil {
+			continue
+		}
+
+		switch v := userIDVal.(type) {
+		case int64:
+			return v
+		case int:
+			return int64(v)
+		case float64:
+			// 部分 JWT claims 解析可能以 float64 存储
+			return int64(v)
+		case string:
+			// 不处理 string，避免引入 strconv 依赖；视为未授权
+			continue
+		default:
+			continue
+		}
 	}
-	
-	if userID, ok := userIDVal.(int64); ok {
-		return userID
-	}
-	
+
 	return 0
 }
 
 func (l *ImageLogic) isAllowedFileType(filename string) bool {
 	ext := strings.ToLower(filepath.Ext(filename))
 	allowedTypes := strings.Split(l.svcCtx.Config.Upload.AllowedTypes, ",")
-	
+
 	for _, t := range allowedTypes {
 		if ext == strings.TrimSpace(t) {
 			return true
 		}
 	}
-	
+
 	return false
 }
 

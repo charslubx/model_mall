@@ -29,7 +29,7 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 		//	Path:    "/api/register",
 		//	Handler: RegisterHandler(serverCtx),
 		//},
-		
+
 		// 模型服务回调接口（公开）
 		{
 			Method:  http.MethodPost,
@@ -46,12 +46,23 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 			//	Path:    "/api/user/info",
 			//	Handler: GetUserInfoHandler(serverCtx),
 			//},
-			
+
 			// 图片相关接口
 			{
 				Method:  http.MethodPost,
 				Path:    "/api/images/upload",
 				Handler: UploadImageHandler(serverCtx),
+			},
+			// 文件上传相关接口
+			{
+				Method:  http.MethodPost,
+				Path:    "/api/upload/file",
+				Handler: UploadFileHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/api/uploadPropConfig",
+				Handler: UploadPropConfigHandler(serverCtx),
 			},
 			{
 				Method:  http.MethodGet,
@@ -63,7 +74,7 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Path:    "/api/images/:image_id/labels",
 				Handler: GetImageLabelsHandler(serverCtx),
 			},
-			
+
 			// 识别任务相关接口
 			{
 				Method:  http.MethodGet,

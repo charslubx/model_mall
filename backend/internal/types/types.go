@@ -36,6 +36,23 @@ type UploadImageResp struct {
 	Filename string `json:"filename"`
 }
 
+// ========== 文件上传相关 ==========
+
+type UploadFileResp struct {
+	Url      string `json:"url"`
+	Filename string `json:"filename"`
+	Size     int64  `json:"size"`
+	MimeType string `json:"mimeType"`
+}
+
+// UploadPropConfigResp 上传属性配置文件响应
+type UploadPropConfigResp struct {
+	Url      string `json:"url"`
+	Filename string `json:"filename"`
+	Size     int64  `json:"size"`
+	MimeType string `json:"mimeType"`
+}
+
 // ========== 识别任务相关 ==========
 
 type GetTaskStatusReq struct {
@@ -43,14 +60,14 @@ type GetTaskStatusReq struct {
 }
 
 type GetTaskStatusResp struct {
-	TaskID      string  `json:"task_id"`
-	ImageID     int64   `json:"image_id"`
-	Status      int16   `json:"status"`       // 0-待处理 1-处理中 2-已完成 3-失败
-	Progress    int     `json:"progress"`     // 0-100
-	ResultCount int     `json:"result_count"` // 识别结果数量
-	ErrorMsg    string  `json:"error_msg,omitempty"`
-	CreatedAt   string  `json:"created_at"`
-	CompletedAt string  `json:"completed_at,omitempty"`
+	TaskID      string `json:"task_id"`
+	ImageID     int64  `json:"image_id"`
+	Status      int16  `json:"status"`       // 0-待处理 1-处理中 2-已完成 3-失败
+	Progress    int    `json:"progress"`     // 0-100
+	ResultCount int    `json:"result_count"` // 识别结果数量
+	ErrorMsg    string `json:"error_msg,omitempty"`
+	CreatedAt   string `json:"created_at"`
+	CompletedAt string `json:"completed_at,omitempty"`
 }
 
 type GetTaskListReq struct {
@@ -66,14 +83,14 @@ type GetTaskListResp struct {
 }
 
 type TaskInfo struct {
-	TaskID      string  `json:"task_id"`
-	ImageID     int64   `json:"image_id"`
-	ModelName   string  `json:"model_name"`
-	Status      int16   `json:"status"`
-	Progress    int     `json:"progress"`
-	ResultCount int     `json:"result_count"`
-	CreatedAt   string  `json:"created_at"`
-	CompletedAt string  `json:"completed_at,omitempty"`
+	TaskID      string `json:"task_id"`
+	ImageID     int64  `json:"image_id"`
+	ModelName   string `json:"model_name"`
+	Status      int16  `json:"status"`
+	Progress    int    `json:"progress"`
+	ResultCount int    `json:"result_count"`
+	CreatedAt   string `json:"created_at"`
+	CompletedAt string `json:"completed_at,omitempty"`
 }
 
 // ========== 分类标签相关 ==========
