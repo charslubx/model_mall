@@ -6,24 +6,30 @@ import (
 
 // Repositories 仓库集合
 type Repositories struct {
-	User                  *UserRepository
-	Role                  *RoleRepository
-	Permission            *PermissionRepository
-	RolePermission        *RolePermissionRepository
-	Image                 *ImageRepository
-	RecognitionTask       *RecognitionTaskRepository
-	ClassificationLabel   *ClassificationLabelRepository
+	UserRepo                *UserRepository
+	RoleRepo                *RoleRepository
+	PermissionRepo          *PermissionRepository
+	RolePermissionRepo      *RolePermissionRepository
+	ImageRepo               *ImageRepository
+	RecognitionTaskRepo     *RecognitionTaskRepository
+	ClassificationLabelRepo *ClassificationLabelRepository
+	ProductRepo             *ProductRepository
+	CartRepo                *CartRepository
+	OrderRepo               *OrderRepository
 }
 
 // NewRepositories 创建仓库集合
 func NewRepositories(db *gorm.DB) *Repositories {
 	return &Repositories{
-		User:                NewUserRepository(db),
-		Role:                NewRoleRepository(db),
-		Permission:          NewPermissionRepository(db),
-		RolePermission:      NewRolePermissionRepository(db),
-		Image:               NewImageRepository(db),
-		RecognitionTask:     NewRecognitionTaskRepository(db),
-		ClassificationLabel: NewClassificationLabelRepository(db),
+		UserRepo:                NewUserRepository(db),
+		RoleRepo:                NewRoleRepository(db),
+		PermissionRepo:          NewPermissionRepository(db),
+		RolePermissionRepo:      NewRolePermissionRepository(db),
+		ImageRepo:               NewImageRepository(db),
+		RecognitionTaskRepo:     NewRecognitionTaskRepository(db),
+		ClassificationLabelRepo: NewClassificationLabelRepository(db),
+		ProductRepo:             NewProductRepository(db),
+		CartRepo:                NewCartRepository(db),
+		OrderRepo:               NewOrderRepository(db),
 	}
 }

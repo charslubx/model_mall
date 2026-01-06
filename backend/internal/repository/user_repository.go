@@ -76,6 +76,18 @@ func (r *UserRepository) UpdateByID(ctx context.Context, id int64, updates map[s
 		Updates(updates).Error
 }
 
+// GetByPhone 根据手机号获取用户
+func (r *UserRepository) GetByPhone(ctx context.Context, phone string) (*models.User, error) {
+	var user models.User
+	err := r.db.WithContext(ctx).
+		Where("phone = ?", phone).
+		First(&user).Error
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
 // Delete 删除用户
 func (r *UserRepository) Delete(ctx context.Context, id int64) error {
 	return r.db.WithContext(ctx).Delete(&models.User{}, id).Error
@@ -128,7 +140,7 @@ func (r *UserRepository) List(ctx context.Context, req *models.UserListReq) ([]*
 func (r *UserRepository) ExistsByUsername(ctx context.Context, username string, excludeID ...int64) (bool, error) {
 	db := r.db.WithContext(ctx).Model(&models.User{})
 	db = db.Where("username = ?", username)
-	
+
 	if len(excludeID) > 0 && excludeID[0] > 0 {
 		db = db.Where("id != ?", excludeID[0])
 	}
@@ -142,7 +154,7 @@ func (r *UserRepository) ExistsByUsername(ctx context.Context, username string, 
 func (r *UserRepository) ExistsByEmail(ctx context.Context, email string, excludeID ...int64) (bool, error) {
 	db := r.db.WithContext(ctx).Model(&models.User{})
 	db = db.Where("email = ?", email)
-	
+
 	if len(excludeID) > 0 && excludeID[0] > 0 {
 		db = db.Where("id != ?", excludeID[0])
 	}
@@ -160,7 +172,7 @@ func (r *UserRepository) ExistsByPhone(ctx context.Context, phone string, exclud
 
 	db := r.db.WithContext(ctx).Model(&models.User{})
 	db = db.Where("phone = ?", phone)
-	
+
 	if len(excludeID) > 0 && excludeID[0] > 0 {
 		db = db.Where("id != ?", excludeID[0])
 	}
