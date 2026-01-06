@@ -72,11 +72,11 @@ func (l *RecognitionTaskLogic) GetTaskList(req *types.GetTaskListReq) (*types.Ge
 			ResultCount: task.ResultCount,
 			CreatedAt:   task.CreatedAt.Format("2006-01-02 15:04:05"),
 		}
-		
+
 		if task.CompletedAt.Valid {
 			info.CompletedAt = task.CompletedAt.Time.Format("2006-01-02 15:04:05")
 		}
-		
+
 		list = append(list, info)
 	}
 
@@ -89,14 +89,26 @@ func (l *RecognitionTaskLogic) GetTaskList(req *types.GetTaskListReq) (*types.Ge
 }
 
 func (l *RecognitionTaskLogic) getUserIDFromContext() int64 {
-	userIDVal := l.ctx.Value("user_id")
-	if userIDVal == nil {
-		return 0
+	// 兼容不同中间件写入的 key：user_id / userId
+	for _, key := range []string{"user_id", "userId"} {
+		userIDVal := l.ctx.Value(key)
+		if userIDVal == nil {
+			continue
+		}
+
+		switch v := userIDVal.(type) {
+		case int64:
+			return v
+		case int:
+			return int64(v)
+		case float64:
+			return int64(v)
+		case string:
+			continue
+		default:
+			continue
+		}
 	}
-	
-	if userID, ok := userIDVal.(int64); ok {
-		return userID
-	}
-	
+
 	return 0
 }
