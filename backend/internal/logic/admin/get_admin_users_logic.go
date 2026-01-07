@@ -37,7 +37,7 @@ func (l *GetAdminUsersLogic) GetAdminUsers(req *types.GetAdminUsersRequest) (res
 
 	// TODO: 根据type、status、keyword查询用户列表
 	// 这里使用模拟数据
-	users := []types.AdminUserInfo{
+	users := []types.AdminUserListItem{
 		{
 			Id:           "u123456",
 			Name:         "张三",

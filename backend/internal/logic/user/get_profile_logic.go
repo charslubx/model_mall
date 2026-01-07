@@ -43,7 +43,24 @@ func (l *GetProfileLogic) GetProfile() (resp *types.UserProfile, err error) {
 
 	// TODO: 查询用户地址列表
 	// 这里简化处理，返回空地址列表
-	addresses := []types.Address{}
+	addresses := []types.AddressInfo{}
+
+	// 转换性别
+	genderStr := ""
+	switch user.Gender {
+	case 1:
+		genderStr = "male"
+	case 2:
+		genderStr = "female"
+	default:
+		genderStr = "unknown"
+	}
+
+	// 转换生日
+	birthdayStr := ""
+	if user.Birthday != nil {
+		birthdayStr = user.Birthday.Format("2006-01-02")
+	}
 
 	resp = &types.UserProfile{
 		Id:        fmt.Sprintf("%d", user.ID),
@@ -51,8 +68,8 @@ func (l *GetProfileLogic) GetProfile() (resp *types.UserProfile, err error) {
 		Email:     user.Email,
 		Phone:     user.Phone,
 		Avatar:    user.Avatar,
-		Gender:    user.Gender,
-		Birthday:  user.Birthday,
+		Gender:    genderStr,
+		Birthday:  birthdayStr,
 		CreatedAt: user.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 		Addresses: addresses,
 	}

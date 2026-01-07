@@ -28,7 +28,7 @@ func NewGetMerchantAnalyticsLogic(ctx context.Context, svcCtx *svc.ServiceContex
 	}
 }
 
-func (l *GetMerchantAnalyticsLogic) GetMerchantAnalytics(req *types.GetMerchantAnalyticsRequest) (resp *types.MerchantAnalytics, err error) {
+func (l *GetMerchantAnalyticsLogic) GetMerchantAnalytics(req *types.GetAnalyticsRequest) (resp *types.MerchantAnalytics, err error) {
 	// 获取商户ID
 	merchantId, ok := l.ctx.Value("userId").(int64)
 	if !ok {

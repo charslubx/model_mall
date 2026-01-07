@@ -54,7 +54,11 @@ func (l *UpdateUserStatusLogic) UpdateUserStatus(req *types.UpdateUserStatusRequ
 	}
 
 	// 更新状态
-	user.Status = req.Status
+	var statusInt int8 = 1
+	if req.Status == "disabled" {
+		statusInt = 0
+	}
+	user.Status = statusInt
 	err = l.svcCtx.Repos.UserRepo.Update(l.ctx, user)
 	if err != nil {
 		return nil, fmt.Errorf("更新用户状态失败: %v", err)

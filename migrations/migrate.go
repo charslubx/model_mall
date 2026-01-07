@@ -1,30 +1,49 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
 	"path/filepath"
 	"sort"
 	"strings"
 
-	"model_mall_backend/backend/internal/config"
-	"model_mall_backend/backend/internal/models"
-
-	"github.com/zeromicro/go-zero/core/conf"
+	"gopkg.in/yaml.v3"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
 
+// DatabaseConfig 数据库配置结构
+type DatabaseConfig struct {
+	Host     string `yaml:"Host"`
+	Port     int    `yaml:"Port"`
+	Username string `yaml:"Username"`
+	Password string `yaml:"Password"`
+	Database string `yaml:"Database"`
+	SSLMode  string `yaml:"SSLMode"`
+}
+
+// Config 配置结构
+type Config struct {
+	PostgreSQL DatabaseConfig `yaml:"PostgreSQL"`
+}
+
 func main() {
 	// 加载配置
-	var c config.Config
-	conf.MustLoad("../backend/etc/backend-api.yaml", &c)
+	configPath := "../backend/etc/backend-api.yaml"
+	if len(os.Args) > 1 {
+		configPath = os.Args[1]
+	}
+
+	c, err := loadConfig(configPath)
+	if err != nil {
+		log.Fatalf("加载配置失败: %v", err)
+	}
 
 	// 连接数据库
-	db, err := connectDB(&c)
+	db, err := connectDB(c)
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
@@ -34,21 +53,31 @@ func main() {
 
 	fmt.Println("开始执行数据库迁移...")
 
-	// 方式1：执行SQL文件迁移
+	// 执行SQL文件迁移
 	if err := runSQLMigrations(db); err != nil {
 		log.Fatalf("SQL迁移失败: %v", err)
-	}
-
-	// 方式2：使用GORM自动迁移（可选，用于验证表结构）
-	if err := runGORMMigrations(db); err != nil {
-		log.Fatalf("GORM迁移失败: %v", err)
 	}
 
 	fmt.Println("数据库迁移完成！")
 }
 
+// 加载配置文件
+func loadConfig(path string) (*Config, error) {
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("读取配置文件失败: %v", err)
+	}
+
+	var config Config
+	if err := yaml.Unmarshal(data, &config); err != nil {
+		return nil, fmt.Errorf("解析配置文件失败: %v", err)
+	}
+
+	return &config, nil
+}
+
 // 连接数据库
-func connectDB(c *config.Config) (*gorm.DB, error) {
+func connectDB(c *Config) (*gorm.DB, error) {
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=%s",
 		c.PostgreSQL.Host,
 		c.PostgreSQL.Username,
@@ -76,7 +105,7 @@ func runSQLMigrations(db *gorm.DB) error {
 
 	for _, file := range files {
 		fmt.Printf("执行迁移文件: %s\n", file)
-		
+
 		// 读取SQL文件内容
 		content, err := ioutil.ReadFile(file)
 		if err != nil {
@@ -85,7 +114,7 @@ func runSQLMigrations(db *gorm.DB) error {
 
 		// 分割SQL语句（以分号分隔）
 		sqlStatements := strings.Split(string(content), ";")
-		
+
 		for _, stmt := range sqlStatements {
 			stmt = strings.TrimSpace(stmt)
 			if stmt == "" || strings.HasPrefix(stmt, "--") {
@@ -102,33 +131,10 @@ func runSQLMigrations(db *gorm.DB) error {
 				return fmt.Errorf("执行SQL失败 [%s]: %v", file, err)
 			}
 		}
-		
+
 		fmt.Printf("✓ %s 执行完成\n", file)
 	}
 
-	return nil
-}
-
-// 使用GORM自动迁移（验证表结构）
-func runGORMMigrations(db *gorm.DB) error {
-	fmt.Println("验证表结构...")
-	
-	// 自动迁移表结构
-	err := db.AutoMigrate(
-		&models.Permission{},
-		&models.Role{},
-		&models.RolePermission{},
-		&models.User{},
-		&models.Image{},
-		&models.RecognitionTask{},
-		&models.ClassificationLabel{},
-	)
-	
-	if err != nil {
-		return fmt.Errorf("GORM自动迁移失败: %v", err)
-	}
-	
-	fmt.Println("✓ 表结构验证完成")
 	return nil
 }
 

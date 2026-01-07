@@ -38,26 +38,26 @@ func (l *GetOrderAnalyticsLogic) GetOrderAnalytics(req *types.GetOrderAnalyticsR
 	// TODO: 根据timeRange查询实际订单分析数据
 	// 这里使用模拟数据
 	resp = &types.OrderAnalytics{
-		OrdersByStatus: []types.OrderStatusStat{
+		OrdersByStatus: []types.OrderStatusAnalytics{
 			{Status: "已完成", Count: 9845, Percentage: 62},
 			{Status: "已发货", Count: 2568, Percentage: 16},
 			{Status: "待发货", Count: 1256, Percentage: 8},
 			{Status: "待付款", Count: 1020, Percentage: 6},
 			{Status: "已取消", Count: 1000, Percentage: 8},
 		},
-		OrdersByPayment: []types.PaymentMethodStat{
+		OrdersByPayment: []types.OrderPaymentAnalytics{
 			{Method: "支付宝", Count: 7845, Percentage: 50},
 			{Method: "微信支付", Count: 6258, Percentage: 40},
 			{Method: "银联支付", Count: 1586, Percentage: 10},
 		},
-		RecentSales: []types.SalesDataPoint{
+		RecentSales: []types.RecentSalesData{
 			{Date: "2025-01-01", Sales: 125689.00, Orders: 456},
 			{Date: "2025-01-02", Sales: 138456.00, Orders: 512},
 			{Date: "2025-01-03", Sales: 142356.00, Orders: 534},
 			{Date: "2025-01-04", Sales: 135678.00, Orders: 498},
 			{Date: "2025-01-05", Sales: 148923.00, Orders: 556},
 		},
-		TopCategories: []types.CategorySalesStat{
+		TopCategories: []types.TopCategoryData{
 			{Category: "上衣", Sales: 456789.00, Percentage: 36},
 			{Category: "裤装", Sales: 325678.00, Percentage: 26},
 			{Category: "裙装", Sales: 198456.00, Percentage: 16},

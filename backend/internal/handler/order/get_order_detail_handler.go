@@ -14,8 +14,11 @@ import (
 // 获取订单详情
 func GetOrderDetailHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// 从URL路径获取订单ID
+		orderId := r.URL.Path[len("/api/orders/"):]
+
 		l := order.NewGetOrderDetailLogic(r.Context(), svcCtx)
-		resp, err := l.GetOrderDetail()
+		resp, err := l.GetOrderDetail(orderId)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 		} else {

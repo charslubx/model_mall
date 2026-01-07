@@ -15,6 +15,12 @@ import (
 // 取消订单
 func CancelOrderHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		var pathReq types.PathProductId
+		if err := httpx.Parse(r, &pathReq); err != nil {
+			httpx.ErrorCtx(r.Context(), w, err)
+			return
+		}
+
 		var req types.CancelOrderRequest
 		if err := httpx.Parse(r, &req); err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
@@ -22,7 +28,7 @@ func CancelOrderHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		}
 
 		l := order.NewCancelOrderLogic(r.Context(), svcCtx)
-		resp, err := l.CancelOrder(&req)
+		resp, err := l.CancelOrder(&req, pathReq.Id)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 		} else {

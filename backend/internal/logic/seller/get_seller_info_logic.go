@@ -29,7 +29,7 @@ func NewGetSellerInfoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Get
 	}
 }
 
-func (l *GetSellerInfoLogic) GetSellerInfo(sellerId string) (resp *types.SellerInfo, err error) {
+func (l *GetSellerInfoLogic) GetSellerInfo(sellerId string) (resp *types.SellerDetail, err error) {
 	// 转换卖家ID
 	id, err := strconv.ParseInt(sellerId, 10, 64)
 	if err != nil {
@@ -48,7 +48,7 @@ func (l *GetSellerInfoLogic) GetSellerInfo(sellerId string) (resp *types.SellerI
 	}
 
 	// TODO: 查询卖家的统计数据
-	resp = &types.SellerInfo{
+	resp = &types.SellerDetail{
 		Id:            sellerId,
 		Name:          seller.MerchantName,
 		Avatar:        seller.Avatar,

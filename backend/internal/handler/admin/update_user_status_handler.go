@@ -15,6 +15,12 @@ import (
 // 更新用户状态
 func UpdateUserStatusHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		var pathReq types.PathUserId
+		if err := httpx.Parse(r, &pathReq); err != nil {
+			httpx.ErrorCtx(r.Context(), w, err)
+			return
+		}
+
 		var req types.UpdateUserStatusRequest
 		if err := httpx.Parse(r, &req); err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
@@ -22,7 +28,7 @@ func UpdateUserStatusHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		}
 
 		l := admin.NewUpdateUserStatusLogic(r.Context(), svcCtx)
-		resp, err := l.UpdateUserStatus(&req)
+		resp, err := l.UpdateUserStatus(&req, pathReq.Id)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 		} else {

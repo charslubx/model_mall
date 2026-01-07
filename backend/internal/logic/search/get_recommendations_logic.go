@@ -31,7 +31,7 @@ func NewGetRecommendationsLogic(ctx context.Context, svcCtx *svc.ServiceContext)
 }
 
 func (l *GetRecommendationsLogic) GetRecommendations(req *types.GetRecommendationsRequest) (resp *types.GetRecommendationsResponse, err error) {
-	var products []types.RecommendedProduct
+	var products []types.RecommendationProduct
 	limit := req.Limit
 	if limit == 0 {
 		limit = 10
@@ -70,7 +70,7 @@ func (l *GetRecommendationsLogic) GetRecommendations(req *types.GetRecommendatio
 						image = images[0]
 					}
 
-					products = append(products, types.RecommendedProduct{
+					products = append(products, types.RecommendationProduct{
 						Id:     fmt.Sprintf("%d", p.ID),
 						Name:   p.Name,
 						Price:  p.Price,
@@ -109,7 +109,7 @@ func (l *GetRecommendationsLogic) GetRecommendations(req *types.GetRecommendatio
 				image = images[0]
 			}
 
-			products = append(products, types.RecommendedProduct{
+			products = append(products, types.RecommendationProduct{
 				Id:     fmt.Sprintf("%d", p.ID),
 				Name:   p.Name,
 				Price:  p.Price,

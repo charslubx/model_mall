@@ -28,7 +28,7 @@ func NewGetUserOrdersLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Get
 	}
 }
 
-func (l *GetUserOrdersLogic) GetUserOrders(req *types.GetUserOrdersRequest) (resp *types.GetOrdersResponse, err error) {
+func (l *GetUserOrdersLogic) GetUserOrders(req *types.GetOrdersRequest) (resp *types.GetOrdersResponse, err error) {
 	// 获取用户ID
 	userId, ok := l.ctx.Value("userId").(int64)
 	if !ok {
@@ -42,18 +42,19 @@ func (l *GetUserOrdersLogic) GetUserOrders(req *types.GetUserOrdersRequest) (res
 	}
 
 	// 构造响应
-	orderList := make([]types.OrderSummary, 0)
+	orderList := make([]types.OrderListItem, 0)
 	for _, order := range orders {
 		// 获取订单项
 		items, _ := l.svcCtx.Repos.OrderRepo.GetOrderItems(l.ctx, order.ID)
 
-		orderItems := make([]types.OrderItemSummary, 0)
+		orderItems := make([]types.OrderItemDetail, 0)
 		for _, item := range items {
-			orderItems = append(orderItems, types.OrderItemSummary{
+			orderItems = append(orderItems, types.OrderItemDetail{
 				ProductId: fmt.Sprintf("%d", item.ProductID),
 				Name:      item.Name,
 				Image:     item.Image,
 				Quantity:  item.Quantity,
+				Price:     item.Price,
 			})
 		}
 
@@ -66,14 +67,14 @@ func (l *GetUserOrdersLogic) GetUserOrders(req *types.GetUserOrdersRequest) (res
 			"cancelled": "已取消",
 		}
 
-		orderList = append(orderList, types.OrderSummary{
+		orderList = append(orderList, types.OrderListItem{
 			Id:         fmt.Sprintf("%d", order.ID),
 			OrderNo:    order.OrderNo,
 			Date:       order.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 			Status:     order.Status,
 			StatusText: statusTextMap[order.Status],
 			Total:      order.Total,
-			ItemCount:  len(orderItems),
+			ItemCount:  len(items),
 			Items:      orderItems,
 		})
 	}

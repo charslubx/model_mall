@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"time"
 
 	"model_mall_backend/backend/internal/svc"
 	"model_mall_backend/backend/internal/types"
@@ -61,9 +60,9 @@ func (l *GetOrderDetailLogic) GetOrderDetail(orderId string) (resp *types.OrderD
 	}
 
 	// 构造订单项
-	orderItems := make([]types.OrderItemDetail, 0)
+	orderItems := make([]types.OrderItemFull, 0)
 	for _, item := range items {
-		orderItems = append(orderItems, types.OrderItemDetail{
+		orderItems = append(orderItems, types.OrderItemFull{
 			Id:        fmt.Sprintf("%d", item.ID),
 			ProductId: fmt.Sprintf("%d", item.ProductID),
 			Name:      item.Name,
@@ -92,7 +91,7 @@ func (l *GetOrderDetailLogic) GetOrderDetail(orderId string) (resp *types.OrderD
 	}
 
 	// 构造时间线
-	timeline := []types.OrderTimeline{
+	timeline := []types.TimelineItem{
 		{
 			Date:        order.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 			Status:      "订单已创建",
@@ -101,7 +100,7 @@ func (l *GetOrderDetailLogic) GetOrderDetail(orderId string) (resp *types.OrderD
 	}
 
 	if order.PaidAt != nil {
-		timeline = append(timeline, types.OrderTimeline{
+		timeline = append(timeline, types.TimelineItem{
 			Date:        order.PaidAt.Format("2006-01-02T15:04:05Z07:00"),
 			Status:      "支付成功",
 			Description: "订单已支付",
@@ -109,16 +108,17 @@ func (l *GetOrderDetailLogic) GetOrderDetail(orderId string) (resp *types.OrderD
 	}
 
 	if order.ShippedAt != nil {
-		timeline = append(timeline, types.OrderTimeline{
+		timeline = append(timeline, types.TimelineItem{
 			Date:        order.ShippedAt.Format("2006-01-02T15:04:05Z07:00"),
 			Status:      "已发货",
 			Description: fmt.Sprintf("快递已揽收，运单号：%s", order.TrackingNumber),
 		})
 	}
 
-	if order.CompletedAt != nil {
-		timeline = append(timeline, types.OrderTimeline{
-			Date:        order.CompletedAt.Format("2006-01-02T15:04:05Z07:00"),
+	// 订单完成时间（使用UpdatedAt作为替代）
+	if order.Status == "completed" {
+		timeline = append(timeline, types.TimelineItem{
+			Date:        order.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
 			Status:      "已完成",
 			Description: "订单已完成",
 		})

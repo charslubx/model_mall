@@ -44,7 +44,7 @@ func (l *GetSellerProductsLogic) GetSellerProducts(req *types.GetSellerProductsR
 	}
 
 	// 构造响应
-	productList := make([]types.ProductSummary, 0)
+	productList := make([]types.ProductListItem, 0)
 	for _, product := range products {
 		// 解析图片
 		var images []string
@@ -56,13 +56,35 @@ func (l *GetSellerProductsLogic) GetSellerProducts(req *types.GetSellerProductsR
 			image = images[0]
 		}
 
-		productList = append(productList, types.ProductSummary{
-			Id:     fmt.Sprintf("%d", product.ID),
-			Name:   product.Name,
-			Price:  product.Price,
-			Image:  image,
-			Rating: product.Rating,
-			Sales:  product.Sales,
+		// 解析标签
+		var tags []string
+		if product.Tags != "" {
+			_ = json.Unmarshal([]byte(product.Tags), &tags)
+		}
+
+		// 获取卖家信息
+		seller, _ := l.svcCtx.Repos.UserRepo.GetByID(l.ctx, product.MerchantID)
+		sellerInfo := types.SellerInfo{
+			Id:   fmt.Sprintf("%d", product.MerchantID),
+			Name: "未知商户",
+		}
+		if seller != nil {
+			sellerInfo.Name = seller.MerchantName
+			sellerInfo.Avatar = seller.Avatar
+			sellerInfo.Rating = 4.5
+		}
+
+		productList = append(productList, types.ProductListItem{
+			Id:       fmt.Sprintf("%d", product.ID),
+			Name:     product.Name,
+			Category: product.Category,
+			Price:    product.Price,
+			Image:    image,
+			Rating:   product.Rating,
+			Sales:    int(product.Sales),
+			Stock:    int(product.Stock),
+			Tags:     tags,
+			Seller:   sellerInfo,
 		})
 	}
 

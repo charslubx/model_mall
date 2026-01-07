@@ -30,7 +30,7 @@ func NewGetCarouselLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetCa
 func (l *GetCarouselLogic) GetCarousel() (resp *types.GetCarouselResponse, err error) {
 	// TODO: 从数据库查询轮播图配置
 	// 这里使用模拟数据
-	banners := []types.Banner{
+	banners := []types.BannerItem{
 		{
 			Id:    "banner001",
 			Image: "https://cdn.example.com/banners/banner1.jpg",

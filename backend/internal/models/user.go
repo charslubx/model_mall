@@ -6,22 +6,26 @@ import (
 
 // User 用户表
 type User struct {
-	ID          int64     `json:"id" gorm:"primaryKey;autoIncrement;comment:用户ID"`
-	Username    string    `json:"username" gorm:"type:varchar(50);uniqueIndex;not null;comment:用户名"`
-	Email       string    `json:"email" gorm:"type:varchar(100);uniqueIndex;not null;comment:邮箱"`
-	Phone       string    `json:"phone" gorm:"type:varchar(20);uniqueIndex;comment:手机号"`
-	Password    string    `json:"-" gorm:"type:varchar(255);not null;comment:密码哈希"`
-	Avatar      string    `json:"avatar" gorm:"type:varchar(255);comment:头像URL"`
-	Nickname    string    `json:"nickname" gorm:"type:varchar(50);comment:昵称"`
-	Gender      int8      `json:"gender" gorm:"type:smallint;default:0;comment:性别 0-未知 1-男 2-女"`
-	Birthday    *time.Time `json:"birthday" gorm:"type:date;comment:生日"`
-	Status      int8      `json:"status" gorm:"type:smallint;default:1;comment:状态 0-禁用 1-正常"`
-	RoleID      int64     `json:"role_id" gorm:"not null;comment:角色ID"`
-	LastLoginAt *time.Time `json:"last_login_at" gorm:"comment:最后登录时间"`
-	LastLoginIP string    `json:"last_login_ip" gorm:"type:varchar(45);comment:最后登录IP"`
-	CreatedAt   time.Time `json:"created_at" gorm:"autoCreateTime;comment:创建时间"`
-	UpdatedAt   time.Time `json:"updated_at" gorm:"autoUpdateTime;comment:更新时间"`
-	
+	ID           int64      `json:"id" gorm:"primaryKey;autoIncrement;comment:用户ID"`
+	Username     string     `json:"username" gorm:"type:varchar(50);uniqueIndex;not null;comment:用户名"`
+	Name         string     `json:"name" gorm:"type:varchar(100);not null;comment:姓名"`
+	Email        string     `json:"email" gorm:"type:varchar(100);uniqueIndex;not null;comment:邮箱"`
+	Phone        string     `json:"phone" gorm:"type:varchar(20);uniqueIndex;comment:手机号"`
+	Password     string     `json:"-" gorm:"type:varchar(255);not null;comment:密码哈希"`
+	Avatar       string     `json:"avatar" gorm:"type:varchar(255);comment:头像URL"`
+	Nickname     string     `json:"nickname" gorm:"type:varchar(50);comment:昵称"`
+	Gender       int8       `json:"gender" gorm:"type:smallint;default:0;comment:性别 0-未知 1-男 2-女"`
+	Birthday     *time.Time `json:"birthday" gorm:"type:date;comment:生日"`
+	Status       int8       `json:"status" gorm:"type:smallint;default:1;comment:状态 0-禁用 1-正常"`
+	UserType     string     `json:"user_type" gorm:"type:varchar(20);not null;default:'customer';comment:用户类型 customer-顾客 merchant-商户"`
+	MerchantName string     `json:"merchant_name" gorm:"type:varchar(100);comment:商户名称"`
+	Description  string     `json:"description" gorm:"type:text;comment:商户描述"`
+	RoleID       int64      `json:"role_id" gorm:"not null;comment:角色ID"`
+	LastLoginAt  *time.Time `json:"last_login_at" gorm:"comment:最后登录时间"`
+	LastLoginIP  string     `json:"last_login_ip" gorm:"type:varchar(45);comment:最后登录IP"`
+	CreatedAt    time.Time  `json:"created_at" gorm:"autoCreateTime;comment:创建时间"`
+	UpdatedAt    time.Time  `json:"updated_at" gorm:"autoUpdateTime;comment:更新时间"`
+
 	// 关联关系
 	Role Role `json:"role" gorm:"foreignKey:RoleID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT"`
 }
@@ -56,21 +60,21 @@ type UserUpdateReq struct {
 
 // UserResp 用户响应
 type UserResp struct {
-	ID          int64     `json:"id"`
-	Username    string    `json:"username"`
-	Email       string    `json:"email"`
-	Phone       string    `json:"phone"`
-	Avatar      string    `json:"avatar"`
-	Nickname    string    `json:"nickname"`
-	Gender      int8      `json:"gender"`
+	ID          int64      `json:"id"`
+	Username    string     `json:"username"`
+	Email       string     `json:"email"`
+	Phone       string     `json:"phone"`
+	Avatar      string     `json:"avatar"`
+	Nickname    string     `json:"nickname"`
+	Gender      int8       `json:"gender"`
 	Birthday    *time.Time `json:"birthday"`
-	Status      int8      `json:"status"`
-	RoleID      int64     `json:"role_id"`
-	RoleName    string    `json:"role_name"`
+	Status      int8       `json:"status"`
+	RoleID      int64      `json:"role_id"`
+	RoleName    string     `json:"role_name"`
 	LastLoginAt *time.Time `json:"last_login_at"`
-	LastLoginIP string    `json:"last_login_ip"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	LastLoginIP string     `json:"last_login_ip"`
+	CreatedAt   time.Time  `json:"created_at"`
+	UpdatedAt   time.Time  `json:"updated_at"`
 }
 
 // UserListReq 用户列表请求

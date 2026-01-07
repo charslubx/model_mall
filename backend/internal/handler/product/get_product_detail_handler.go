@@ -9,13 +9,20 @@ import (
 	"github.com/zeromicro/go-zero/rest/httpx"
 	"model_mall_backend/backend/internal/logic/product"
 	"model_mall_backend/backend/internal/svc"
+	"model_mall_backend/backend/internal/types"
 )
 
 // 获取商品详情
 func GetProductDetailHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		var req types.PathProductId
+		if err := httpx.Parse(r, &req); err != nil {
+			httpx.ErrorCtx(r.Context(), w, err)
+			return
+		}
+
 		l := product.NewGetProductDetailLogic(r.Context(), svcCtx)
-		resp, err := l.GetProductDetail()
+		resp, err := l.GetProductDetail(req.Id)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 		} else {

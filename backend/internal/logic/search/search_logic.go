@@ -46,7 +46,7 @@ func (l *SearchLogic) Search(req *types.SearchRequest) (resp *types.SearchRespon
 	}
 
 	// 构造响应
-	productList := make([]types.SearchProduct, 0)
+	productList := make([]types.ProductListItem, 0)
 	for _, product := range products {
 		// 解析图片
 		var images []string
@@ -58,24 +58,34 @@ func (l *SearchLogic) Search(req *types.SearchRequest) (resp *types.SearchRespon
 			image = images[0]
 		}
 
+		// 解析标签
+		var tags []string
+		if product.Tags != "" {
+			_ = json.Unmarshal([]byte(product.Tags), &tags)
+		}
+
 		// 获取卖家信息
 		seller, _ := l.svcCtx.Repos.UserRepo.GetByID(l.ctx, product.MerchantID)
-		sellerInfo := types.SellerBasicInfo{
+		sellerInfo := types.SellerInfo{
 			Id:   fmt.Sprintf("%d", product.MerchantID),
 			Name: "未知商户",
 		}
 		if seller != nil {
 			sellerInfo.Name = seller.MerchantName
+			sellerInfo.Avatar = seller.Avatar
+			sellerInfo.Rating = 4.5 // TODO: 从数据库获取实际评分
 		}
 
-		productList = append(productList, types.SearchProduct{
+		productList = append(productList, types.ProductListItem{
 			Id:       fmt.Sprintf("%d", product.ID),
 			Name:     product.Name,
 			Price:    product.Price,
 			Image:    image,
 			Category: product.Category,
 			Rating:   product.Rating,
-			Sales:    product.Sales,
+			Sales:    int(product.Sales),
+			Stock:    int(product.Stock),
+			Tags:     tags,
 			Seller:   sellerInfo,
 		})
 	}

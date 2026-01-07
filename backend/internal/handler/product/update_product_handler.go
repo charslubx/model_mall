@@ -15,6 +15,12 @@ import (
 // 更新商品（商户）
 func UpdateProductHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		var pathReq types.PathProductId
+		if err := httpx.Parse(r, &pathReq); err != nil {
+			httpx.ErrorCtx(r.Context(), w, err)
+			return
+		}
+
 		var req types.UpdateProductRequest
 		if err := httpx.Parse(r, &req); err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
@@ -22,7 +28,7 @@ func UpdateProductHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		}
 
 		l := product.NewUpdateProductLogic(r.Context(), svcCtx)
-		resp, err := l.UpdateProduct(&req)
+		resp, err := l.UpdateProduct(&req, pathReq.Id)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 		} else {

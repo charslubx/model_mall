@@ -15,6 +15,12 @@ import (
 // 获取卖家商品列表
 func GetSellerProductsHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		var pathReq types.PathUserId
+		if err := httpx.Parse(r, &pathReq); err != nil {
+			httpx.ErrorCtx(r.Context(), w, err)
+			return
+		}
+
 		var req types.GetSellerProductsRequest
 		if err := httpx.Parse(r, &req); err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
@@ -22,7 +28,7 @@ func GetSellerProductsHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		}
 
 		l := seller.NewGetSellerProductsLogic(r.Context(), svcCtx)
-		resp, err := l.GetSellerProducts(&req)
+		resp, err := l.GetSellerProducts(&req, pathReq.Id)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 		} else {

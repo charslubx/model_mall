@@ -772,3 +772,211 @@ type UserProfile struct {
 	CreatedAt string        `json:"createdAt"`
 	Addresses []AddressInfo `json:"addresses,omitempty"`
 }
+
+type PathUserId struct {
+	Id string `path:"id"`
+}
+
+type PathProductId struct {
+	Id string `path:"id"`
+}
+
+type PathItemId struct {
+	ItemId string `path:"itemId"`
+}
+
+// 旧版兼容类型定义
+type AdminUserInfo struct {
+	Id           string  `json:"id"`
+	Name         string  `json:"name"`
+	Email        string  `json:"email"`
+	Type         string  `json:"type"`
+	Status       string  `json:"status"`
+	RegisterDate string  `json:"registerDate"`
+	LastLogin    string  `json:"lastLogin"`
+	Avatar       string  `json:"avatar,omitempty"`
+	OrderCount   int     `json:"orderCount"`
+	TotalSpent   float64 `json:"totalSpent"`
+}
+
+type OrderStatusStat struct {
+	Status     string `json:"status"`
+	Count      int    `json:"count"`
+	Percentage int    `json:"percentage"`
+}
+
+type PaymentMethodStat struct {
+	Method     string `json:"method"`
+	Count      int    `json:"count"`
+	Percentage int    `json:"percentage"`
+}
+
+type CategorySalesStat struct {
+	Category   string  `json:"category"`
+	Sales      float64 `json:"sales"`
+	Percentage int     `json:"percentage"`
+}
+
+type TagStat struct {
+	Name       string `json:"name"`
+	Count      int    `json:"count"`
+	Percentage int    `json:"percentage,omitempty"`
+	Growth     int    `json:"growth,omitempty"`
+}
+
+type GetMerchantAnalyticsRequest struct {
+	TimeRange string `form:"timeRange,optional,default=7days"`
+}
+
+type MerchantOrderSummary struct {
+	Id         string  `json:"id"`
+	OrderNo    string  `json:"orderNo"`
+	Date       string  `json:"date"`
+	Status     string  `json:"status"`
+	StatusText string  `json:"statusText"`
+	Total      float64 `json:"total"`
+	Customer   string  `json:"customer"`
+	Payment    string  `json:"payment"`
+}
+
+type OrderTimeline struct {
+	Date        string `json:"date"`
+	Status      string `json:"status"`
+	Description string `json:"description"`
+}
+
+type GetMerchantOrdersRequest struct {
+	Page     int    `form:"page,optional,default=1"`
+	PageSize int    `form:"pageSize,optional,default=20"`
+	Status   string `form:"status,optional"`
+}
+
+type Banner struct {
+	Id    string `json:"id"`
+	Image string `json:"image"`
+	Title string `json:"title"`
+	Link  string `json:"link"`
+	Order int    `json:"order"`
+}
+
+type RecommendedProduct struct {
+	Id     string  `json:"id"`
+	Name   string  `json:"name"`
+	Price  float64 `json:"price"`
+	Image  string  `json:"image"`
+	Rating float64 `json:"rating"`
+	Reason string  `json:"reason,omitempty"`
+}
+
+type SearchProduct struct {
+	Id       string     `json:"id"`
+	Name     string     `json:"name"`
+	Category string     `json:"category"`
+	Price    float64    `json:"price"`
+	Image    string     `json:"image"`
+	Rating   float64    `json:"rating"`
+	Sales    int        `json:"sales"`
+	Stock    int        `json:"stock"`
+	Tags     []string   `json:"tags"`
+	Seller   SellerInfo `json:"seller"`
+}
+
+type SellerBasicInfo struct {
+	Id     string  `json:"id"`
+	Name   string  `json:"name"`
+	Avatar string  `json:"avatar,omitempty"`
+	Rating float64 `json:"rating,omitempty"`
+}
+
+type ProductSummary struct {
+	Id       string   `json:"id"`
+	Name     string   `json:"name"`
+	Category string   `json:"category"`
+	Price    float64  `json:"price"`
+	Image    string   `json:"image"`
+	Rating   float64  `json:"rating"`
+	Sales    int      `json:"sales"`
+	Stock    int      `json:"stock"`
+	Tags     []string `json:"tags"`
+}
+
+type GetUserOrdersRequest struct {
+	Page     int    `form:"page,optional,default=1"`
+	PageSize int    `form:"pageSize,optional,default=20"`
+	Status   string `form:"status,optional"`
+}
+
+type OrderSummary struct {
+	Id         string  `json:"id"`
+	OrderNo    string  `json:"orderNo"`
+	Date       string  `json:"date"`
+	Status     string  `json:"status"`
+	StatusText string  `json:"statusText"`
+	Total      float64 `json:"total"`
+	ItemCount  int     `json:"itemCount"`
+}
+
+type OrderItemSummary struct {
+	ProductId string  `json:"productId"`
+	Name      string  `json:"name"`
+	Image     string  `json:"image"`
+	Quantity  int     `json:"quantity"`
+	Price     float64 `json:"price,omitempty"`
+}
+
+type Address struct {
+	Id        string `json:"id"`
+	Name      string `json:"name"`
+	Phone     string `json:"phone"`
+	Province  string `json:"province"`
+	City      string `json:"city"`
+	District  string `json:"district"`
+	Detail    string `json:"detail"`
+	IsDefault bool   `json:"isDefault"`
+}
+
+type GetImageLabelsReq struct {
+	ImageUrl string `json:"imageUrl" validate:"required"`
+}
+
+type GetImageLabelsResp struct {
+	Labels []string `json:"labels"`
+}
+
+type UploadImageReq struct {
+	Image string `json:"image" validate:"required"`
+}
+
+type UploadImageResp struct {
+	Url string `json:"url"`
+}
+
+type GetImageListReq struct {
+	Page     int `form:"page,optional,default=1"`
+	PageSize int `form:"pageSize,optional,default=20"`
+}
+
+type GetImageListResp struct {
+	Images []string `json:"images"`
+	Total  int      `json:"total"`
+}
+
+type LoginReq struct {
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required"`
+}
+
+type LoginResp struct {
+	Token string   `json:"token"`
+	User  UserInfo `json:"user"`
+}
+
+type ModelCallbackReq struct {
+	TaskId string `json:"taskId" validate:"required"`
+	Status string `json:"status" validate:"required"`
+	Result string `json:"result,omitempty"`
+}
+
+type ModelCallbackResp struct {
+	Success bool `json:"success"`
+}

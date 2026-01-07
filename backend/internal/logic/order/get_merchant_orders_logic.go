@@ -28,7 +28,7 @@ func NewGetMerchantOrdersLogic(ctx context.Context, svcCtx *svc.ServiceContext) 
 	}
 }
 
-func (l *GetMerchantOrdersLogic) GetMerchantOrders(req *types.GetMerchantOrdersRequest) (resp *types.GetMerchantOrdersResponse, err error) {
+func (l *GetMerchantOrdersLogic) GetMerchantOrders(req *types.GetOrdersRequest) (resp *types.GetMerchantOrdersResponse, err error) {
 	// 获取商户ID
 	userId, ok := l.ctx.Value("userId").(int64)
 	if !ok {
@@ -42,18 +42,19 @@ func (l *GetMerchantOrdersLogic) GetMerchantOrders(req *types.GetMerchantOrdersR
 	}
 
 	// 构造响应
-	orderList := make([]types.MerchantOrderSummary, 0)
+	orderList := make([]types.MerchantOrderItem, 0)
 	for _, order := range orders {
 		// 获取订单项
 		items, _ := l.svcCtx.Repos.OrderRepo.GetOrderItems(l.ctx, order.ID)
 
-		orderItems := make([]types.MerchantOrderItem, 0)
+		orderItems := make([]types.OrderItemDetail, 0)
 		for _, item := range items {
-			orderItems = append(orderItems, types.MerchantOrderItem{
-				Id:       fmt.Sprintf("%d", item.ID),
-				Name:     item.Name,
-				Quantity: item.Quantity,
-				Price:    item.Price,
+			orderItems = append(orderItems, types.OrderItemDetail{
+				ProductId: fmt.Sprintf("%d", item.ProductID),
+				Name:      item.Name,
+				Image:     item.Image,
+				Quantity:  item.Quantity,
+				Price:     item.Price,
 			})
 		}
 
@@ -84,7 +85,7 @@ func (l *GetMerchantOrdersLogic) GetMerchantOrders(req *types.GetMerchantOrdersR
 			"union":  "银联支付",
 		}
 
-		orderList = append(orderList, types.MerchantOrderSummary{
+		orderList = append(orderList, types.MerchantOrderItem{
 			Id:         fmt.Sprintf("%d", order.ID),
 			OrderNo:    order.OrderNo,
 			Customer:   customerInfo,

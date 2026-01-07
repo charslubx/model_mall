@@ -6,16 +6,24 @@ package admin
 import (
 	"net/http"
 
-	"github.com/zeromicro/go-zero/rest/httpx"
 	"model_mall_backend/backend/internal/logic/admin"
 	"model_mall_backend/backend/internal/svc"
+	"model_mall_backend/backend/internal/types"
+
+	"github.com/zeromicro/go-zero/rest/httpx"
 )
 
 // 获取用户详情
 func GetAdminUserDetailHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		var req types.PathUserId
+		if err := httpx.Parse(r, &req); err != nil {
+			httpx.ErrorCtx(r.Context(), w, err)
+			return
+		}
+
 		l := admin.NewGetAdminUserDetailLogic(r.Context(), svcCtx)
-		resp, err := l.GetAdminUserDetail()
+		resp, err := l.GetAdminUserDetail(req.Id)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 		} else {

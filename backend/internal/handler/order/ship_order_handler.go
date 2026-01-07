@@ -15,6 +15,12 @@ import (
 // 商户发货
 func ShipOrderHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		var pathReq types.PathProductId
+		if err := httpx.Parse(r, &pathReq); err != nil {
+			httpx.ErrorCtx(r.Context(), w, err)
+			return
+		}
+
 		var req types.ShipOrderRequest
 		if err := httpx.Parse(r, &req); err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
@@ -22,7 +28,7 @@ func ShipOrderHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		}
 
 		l := order.NewShipOrderLogic(r.Context(), svcCtx)
-		resp, err := l.ShipOrder(&req)
+		resp, err := l.ShipOrder(&req, pathReq.Id)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 		} else {

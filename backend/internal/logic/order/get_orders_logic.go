@@ -5,7 +5,6 @@ package order
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"model_mall_backend/backend/internal/svc"
@@ -43,18 +42,19 @@ func (l *GetOrdersLogic) GetOrders(req *types.GetOrdersRequest) (resp *types.Get
 	}
 
 	// 构造响应
-	orderList := make([]types.OrderSummary, 0)
+	orderList := make([]types.OrderListItem, 0)
 	for _, order := range orders {
 		// 获取订单项
 		items, _ := l.svcCtx.Repos.OrderRepo.GetOrderItems(l.ctx, order.ID)
 
-		orderItems := make([]types.OrderItemSummary, 0)
+		orderItems := make([]types.OrderItemDetail, 0)
 		for _, item := range items {
-			orderItems = append(orderItems, types.OrderItemSummary{
+			orderItems = append(orderItems, types.OrderItemDetail{
 				ProductId: fmt.Sprintf("%d", item.ProductID),
 				Name:      item.Name,
 				Image:     item.Image,
 				Quantity:  item.Quantity,
+				Price:     item.Price,
 			})
 		}
 
@@ -67,7 +67,7 @@ func (l *GetOrdersLogic) GetOrders(req *types.GetOrdersRequest) (resp *types.Get
 			"cancelled": "已取消",
 		}
 
-		orderList = append(orderList, types.OrderSummary{
+		orderList = append(orderList, types.OrderListItem{
 			Id:         fmt.Sprintf("%d", order.ID),
 			OrderNo:    order.OrderNo,
 			Date:       order.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),

@@ -21,8 +21,11 @@ func UpdateCartHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			return
 		}
 
+		// 从URL路径获取购物车项ID
+		itemId := r.URL.Path[len("/api/cart/"):]
+
 		l := cart.NewUpdateCartLogic(r.Context(), svcCtx)
-		resp, err := l.UpdateCart(&req)
+		resp, err := l.UpdateCart(&req, itemId)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 		} else {

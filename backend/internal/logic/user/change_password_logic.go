@@ -43,7 +43,7 @@ func (l *ChangePasswordLogic) ChangePassword(req *types.ChangePasswordRequest) (
 	}
 
 	// 验证旧密码
-	if !utils.CheckPasswordHash(req.OldPassword, user.Password) {
+	if !utils.CheckPassword(req.OldPassword, user.Password) {
 		return nil, fmt.Errorf("旧密码错误")
 	}
 

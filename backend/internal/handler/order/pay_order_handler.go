@@ -21,8 +21,12 @@ func PayOrderHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			return
 		}
 
+		// 从URL路径获取订单ID (格式: /api/orders/:id/pay)
+		path := r.URL.Path
+		orderId := path[len("/api/orders/") : len(path)-len("/pay")]
+
 		l := order.NewPayOrderLogic(r.Context(), svcCtx)
-		resp, err := l.PayOrder(&req)
+		resp, err := l.PayOrder(&req, orderId)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 		} else {

@@ -58,15 +58,27 @@ func (l *GetAdminUserDetailLogic) GetAdminUserDetail(userId string) (resp *types
 		},
 	}
 
+	// 转换状态
+	statusStr := "active"
+	if user.Status == 0 {
+		statusStr = "disabled"
+	}
+
+	// 格式化最后登录时间
+	lastLogin := ""
+	if user.LastLoginAt != nil {
+		lastLogin = user.LastLoginAt.Format("2006-01-02T15:04:05Z07:00")
+	}
+
 	resp = &types.AdminUserDetail{
 		Id:           userId,
 		Name:         user.Name,
 		Email:        user.Email,
 		Phone:        user.Phone,
 		Type:         user.UserType,
-		Status:       user.Status,
+		Status:       statusStr,
 		RegisterDate: user.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
-		LastLogin:    user.LastLoginAt.Format("2006-01-02T15:04:05Z07:00"),
+		LastLogin:    lastLogin,
 		Avatar:       user.Avatar,
 		OrderCount:   15,
 		TotalSpent:   2345.67,

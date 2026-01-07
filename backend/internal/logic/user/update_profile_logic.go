@@ -6,6 +6,7 @@ package user
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"model_mall_backend/backend/internal/svc"
 	"model_mall_backend/backend/internal/types"
@@ -57,10 +58,20 @@ func (l *UpdateProfileLogic) UpdateProfile(req *types.UpdateProfileRequest) (res
 		user.Phone = req.Phone
 	}
 	if req.Gender != "" {
-		user.Gender = req.Gender
+		switch req.Gender {
+		case "male":
+			user.Gender = 1
+		case "female":
+			user.Gender = 2
+		default:
+			user.Gender = 0
+		}
 	}
 	if req.Birthday != "" {
-		user.Birthday = req.Birthday
+		birthday, err := time.Parse("2006-01-02", req.Birthday)
+		if err == nil {
+			user.Birthday = &birthday
+		}
 	}
 
 	// 保存更新
@@ -73,7 +84,7 @@ func (l *UpdateProfileLogic) UpdateProfile(req *types.UpdateProfileRequest) (res
 
 	resp = &types.UpdateProfileResponse{
 		Success: true,
-		User: types.UserBasicInfo{
+		User: types.UserInfo{
 			Id:    fmt.Sprintf("%d", user.ID),
 			Name:  user.Name,
 			Phone: user.Phone,

@@ -28,7 +28,7 @@ func NewGetTagAnalyticsLogic(ctx context.Context, svcCtx *svc.ServiceContext) *G
 	}
 }
 
-func (l *GetTagAnalyticsLogic) GetTagAnalytics() (resp *types.TagAnalytics, err error) {
+func (l *GetTagAnalyticsLogic) GetTagAnalytics() (resp *types.GetTagAnalyticsResponse, err error) {
 	// 获取管理员ID
 	adminId, ok := l.ctx.Value("userId").(int64)
 	if !ok {
@@ -37,15 +37,15 @@ func (l *GetTagAnalyticsLogic) GetTagAnalytics() (resp *types.TagAnalytics, err 
 
 	// TODO: 实现标签统计分析
 	// 这里使用模拟数据
-	resp = &types.TagAnalytics{
-		TopTags: []types.TagStat{
+	resp = &types.GetTagAnalyticsResponse{
+		TopTags: []types.TagAnalytics{
 			{Name: "舒适", Count: 1245, Percentage: 18},
 			{Name: "时尚", Count: 1120, Percentage: 16},
 			{Name: "百搭", Count: 980, Percentage: 14},
 			{Name: "简约", Count: 856, Percentage: 12},
 			{Name: "休闲", Count: 745, Percentage: 11},
 		},
-		TagsByCategory: []types.CategoryTags{
+		TagsByCategory: []types.CategoryTagAnalytics{
 			{
 				Category: "上衣",
 				TopTags:  []string{"舒适", "透气", "百搭", "简约"},
@@ -59,10 +59,10 @@ func (l *GetTagAnalyticsLogic) GetTagAnalytics() (resp *types.TagAnalytics, err 
 				TopTags:  []string{"优雅", "时尚", "显瘦", "甜美"},
 			},
 		},
-		TagGrowth: []types.TagGrowth{
-			{Name: "新品", Growth: 25},
-			{Name: "时尚", Growth: 15},
-			{Name: "热卖", Growth: 12},
+		TagGrowth: []types.TagAnalytics{
+			{Name: "新品", Count: 100, Percentage: 0, Growth: 25},
+			{Name: "时尚", Count: 200, Percentage: 0, Growth: 15},
+			{Name: "热卖", Count: 150, Percentage: 0, Growth: 12},
 		},
 	}
 
