@@ -51,7 +51,7 @@ func (l *UpdateProductLogic) UpdateProduct(req *types.UpdateProductRequest, prod
 	}
 
 	// 验证权限
-	if product.MerchantID != merchantID {
+	if product.SellerID != merchantID {
 		return nil, fmt.Errorf("无权限操作此商品")
 	}
 

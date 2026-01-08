@@ -79,8 +79,7 @@ func (l *CreateOrderLogic) CreateOrder(req *types.CreateOrderRequest) (resp *typ
 			Image:     image,
 			Price:     product.Price,
 			Quantity:  item.Quantity,
-			Color:     item.Color,
-			Size:      item.Size,
+			Subtotal:  product.Price * float64(item.Quantity),
 		}
 		orderItems = append(orderItems, orderItem)
 		subtotal += product.Price * float64(item.Quantity)
@@ -97,17 +96,15 @@ func (l *CreateOrderLogic) CreateOrder(req *types.CreateOrderRequest) (resp *typ
 	order := &models.Order{
 		OrderNo:         orderNo,
 		UserID:          userId,
-		Status:          "pending",
+		SellerID:        9, // 默认卖家ID，实际应该从商品中获取
+		Status:          models.OrderStatusPending,
 		PaymentMethod:   req.PaymentMethod,
-		PaymentStatus:   "unpaid",
+		PaymentStatus:   0, // 0表示未支付
 		ShippingName:    req.Address.Name,
 		ShippingPhone:   req.Address.Phone,
 		ShippingAddress: fmt.Sprintf("%s%s%s%s", req.Address.Province, req.Address.City, req.Address.District, req.Address.Detail),
-		Subtotal:        subtotal,
-		ShippingFee:     shippingFee,
-		Tax:             0,
 		Total:           total,
-		Note:            req.Note,
+		Remark:          req.Note,
 	}
 
 	// 使用事务创建订单
@@ -119,6 +116,29 @@ func (l *CreateOrderLogic) CreateOrder(req *types.CreateOrderRequest) (resp *typ
 	// 扣减库存
 	for _, item := range orderItems {
 		_ = l.svcCtx.Repos.ProductRepo.DecrementStock(l.ctx, item.ProductID, item.Quantity)
+	}
+
+	// 处理购物车：从购物车中移除或减少已购买的商品
+	for _, item := range req.Items {
+		productId, _ := strconv.ParseInt(item.ProductId, 10, 64)
+
+		// 查找用户购物车中是否有该商品（需要匹配颜色和尺寸）
+		cartItem, err := l.svcCtx.Repos.CartRepo.FindByUserAndProduct(l.ctx, userId, productId, item.Color, item.Size)
+		if err == nil && cartItem != nil {
+			// 购物车中存在该商品
+			if cartItem.Quantity <= item.Quantity {
+				// 购物车数量小于等于购买数量，直接删除
+				_ = l.svcCtx.Repos.CartRepo.Delete(l.ctx, cartItem.ID)
+				logx.Infof("从购物车删除商品: cartItemId=%d, productId=%d, quantity=%d",
+					cartItem.ID, productId, cartItem.Quantity)
+			} else {
+				// 购物车数量大于购买数量，减少数量
+				newQuantity := cartItem.Quantity - item.Quantity
+				_ = l.svcCtx.Repos.CartRepo.UpdateQuantity(l.ctx, cartItem.ID, newQuantity)
+				logx.Infof("更新购物车商品数量: cartItemId=%d, productId=%d, oldQuantity=%d, newQuantity=%d",
+					cartItem.ID, productId, cartItem.Quantity, newQuantity)
+			}
+		}
 	}
 
 	// 生成支付URL(模拟)

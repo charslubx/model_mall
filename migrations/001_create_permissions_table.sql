@@ -1,20 +1,20 @@
 -- 创建权限表
 CREATE TABLE IF NOT EXISTS permissions (
     id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(50) NOT NULL COMMENT '权限名称',
-    code VARCHAR(100) NOT NULL UNIQUE COMMENT '权限代码',
-    type VARCHAR(20) NOT NULL COMMENT '权限类型 menu-菜单 button-按钮 api-接口',
-    parent_id BIGINT DEFAULT 0 COMMENT '父权限ID',
-    path VARCHAR(255) COMMENT '路径/接口地址',
-    method VARCHAR(10) COMMENT '请求方法',
-    icon VARCHAR(100) COMMENT '图标',
-    component VARCHAR(255) COMMENT '组件路径',
-    sort INTEGER DEFAULT 0 COMMENT '排序',
-    status SMALLINT DEFAULT 1 COMMENT '状态 0-禁用 1-正常',
-    is_system BOOLEAN DEFAULT FALSE COMMENT '是否系统权限',
-    description VARCHAR(255) COMMENT '权限描述',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '更新时间'
+    name VARCHAR(50) NOT NULL,
+    code VARCHAR(100) NOT NULL UNIQUE,
+    type VARCHAR(20) NOT NULL,
+    parent_id BIGINT DEFAULT 0,
+    path VARCHAR(255),
+    method VARCHAR(10),
+    icon VARCHAR(100),
+    component VARCHAR(255),
+    sort INTEGER DEFAULT 0,
+    status SMALLINT DEFAULT 1,
+    is_system BOOLEAN DEFAULT FALSE,
+    description VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 创建索引

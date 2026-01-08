@@ -112,22 +112,12 @@ func runSQLMigrations(db *gorm.DB) error {
 			return fmt.Errorf("读取文件 %s 失败: %v", file, err)
 		}
 
-		// 分割SQL语句（以分号分隔）
-		sqlStatements := strings.Split(string(content), ";")
-
-		for _, stmt := range sqlStatements {
-			stmt = strings.TrimSpace(stmt)
-			if stmt == "" || strings.HasPrefix(stmt, "--") {
-				continue
-			}
-
-			// 执行SQL语句
-			if err := db.Exec(stmt).Error; err != nil {
-				// 忽略已存在的表/索引等错误
-				if strings.Contains(err.Error(), "already exists") {
-					fmt.Printf("跳过已存在的对象: %s\n", stmt[:min(50, len(stmt))])
-					continue
-				}
+		// 直接执行整个文件内容，让PostgreSQL处理事务
+		if err := db.Exec(string(content)).Error; err != nil {
+			// 忽略已存在的表/索引等错误
+			if strings.Contains(err.Error(), "already exists") {
+				fmt.Printf("跳过已存在的对象\n")
+			} else {
 				return fmt.Errorf("执行SQL失败 [%s]: %v", file, err)
 			}
 		}

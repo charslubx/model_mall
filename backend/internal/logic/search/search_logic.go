@@ -65,9 +65,9 @@ func (l *SearchLogic) Search(req *types.SearchRequest) (resp *types.SearchRespon
 		}
 
 		// 获取卖家信息
-		seller, _ := l.svcCtx.Repos.UserRepo.GetByID(l.ctx, product.MerchantID)
+		seller, _ := l.svcCtx.Repos.UserRepo.GetByID(l.ctx, product.SellerID)
 		sellerInfo := types.SellerInfo{
-			Id:   fmt.Sprintf("%d", product.MerchantID),
+			Id:   fmt.Sprintf("%d", product.SellerID),
 			Name: "未知商户",
 		}
 		if seller != nil {

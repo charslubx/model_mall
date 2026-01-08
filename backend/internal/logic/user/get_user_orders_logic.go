@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 
+	"model_mall_backend/backend/internal/logic/order"
 	"model_mall_backend/backend/internal/svc"
 	"model_mall_backend/backend/internal/types"
 
@@ -43,9 +44,9 @@ func (l *GetUserOrdersLogic) GetUserOrders(req *types.GetOrdersRequest) (resp *t
 
 	// 构造响应
 	orderList := make([]types.OrderListItem, 0)
-	for _, order := range orders {
+	for _, ord := range orders {
 		// 获取订单项
-		items, _ := l.svcCtx.Repos.OrderRepo.GetOrderItems(l.ctx, order.ID)
+		items, _ := l.svcCtx.Repos.OrderRepo.GetOrderItems(l.ctx, ord.ID)
 
 		orderItems := make([]types.OrderItemDetail, 0)
 		for _, item := range items {
@@ -58,22 +59,14 @@ func (l *GetUserOrdersLogic) GetUserOrders(req *types.GetOrdersRequest) (resp *t
 			})
 		}
 
-		// 状态文本映射
-		statusTextMap := map[string]string{
-			"pending":   "待付款",
-			"paid":      "已付款",
-			"shipped":   "已发货",
-			"completed": "已完成",
-			"cancelled": "已取消",
-		}
-
+		statusStr := order.OrderStatusToString(ord.Status)
 		orderList = append(orderList, types.OrderListItem{
-			Id:         fmt.Sprintf("%d", order.ID),
-			OrderNo:    order.OrderNo,
-			Date:       order.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
-			Status:     order.Status,
-			StatusText: statusTextMap[order.Status],
-			Total:      order.Total,
+			Id:         fmt.Sprintf("%d", ord.ID),
+			OrderNo:    ord.OrderNo,
+			Date:       ord.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+			Status:     statusStr,
+			StatusText: order.OrderStatusTextMap[statusStr],
+			Total:      ord.Total,
 			ItemCount:  len(items),
 			Items:      orderItems,
 		})

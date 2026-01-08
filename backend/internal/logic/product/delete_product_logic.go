@@ -49,7 +49,7 @@ func (l *DeleteProductLogic) DeleteProduct(productId string) (resp *types.BaseRe
 	}
 
 	// 验证权限
-	if product.MerchantID != merchantID {
+	if product.SellerID != merchantID {
 		return nil, fmt.Errorf("无权限操作此商品")
 	}
 

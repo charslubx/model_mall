@@ -72,7 +72,7 @@ func (l *GetAdminUserDetailLogic) GetAdminUserDetail(userId string) (resp *types
 
 	resp = &types.AdminUserDetail{
 		Id:           userId,
-		Name:         user.Name,
+		Name:         user.Nickname,
 		Email:        user.Email,
 		Phone:        user.Phone,
 		Type:         user.UserType,

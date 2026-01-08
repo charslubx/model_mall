@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	"model_mall_backend/backend/internal/models"
 	"model_mall_backend/backend/internal/svc"
 	"model_mall_backend/backend/internal/types"
 
@@ -53,15 +54,15 @@ func (l *ShipOrderLogic) ShipOrder(req *types.ShipOrderRequest, orderId string) 
 	// 这里简化处理，实际应该检查订单商品的merchant_id
 
 	// 检查订单状态
-	if order.Status != "paid" {
+	if order.Status != models.OrderStatusPaid {
 		return nil, fmt.Errorf("订单状态不允许发货")
 	}
 
 	// 更新物流信息
 	now := time.Now()
-	order.Status = "shipped"
+	order.Status = models.OrderStatusShipped
 	order.TrackingNumber = req.TrackingNumber
-	order.ShippingCompany = req.ShippingCompany
+	// order.ShippingCompany = req.ShippingCompany // Order模型中没有ShippingCompany字段
 	order.ShippedAt = &now
 
 	err = l.svcCtx.Repos.OrderRepo.Update(l.ctx, order)

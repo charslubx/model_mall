@@ -44,7 +44,7 @@ func (l *UpdateProfileLogic) UpdateProfile(req *types.UpdateProfileRequest) (res
 
 	// 更新字段
 	if req.Name != "" {
-		user.Name = req.Name
+		user.Nickname = req.Name
 	}
 	if req.Email != "" {
 		// 检查邮箱是否已被使用
@@ -86,7 +86,7 @@ func (l *UpdateProfileLogic) UpdateProfile(req *types.UpdateProfileRequest) (res
 		Success: true,
 		User: types.UserInfo{
 			Id:    fmt.Sprintf("%d", user.ID),
-			Name:  user.Name,
+			Name:  user.Nickname,
 			Phone: user.Phone,
 		},
 	}

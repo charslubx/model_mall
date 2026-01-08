@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"model_mall_backend/backend/internal/models"
 	"model_mall_backend/backend/internal/svc"
 	"model_mall_backend/backend/internal/types"
 
@@ -54,11 +55,11 @@ func (l *CancelOrderLogic) CancelOrder(req *types.CancelOrderRequest, orderId st
 	}
 
 	// 检查订单状态
-	if order.Status == "shipped" || order.Status == "completed" {
+	if order.Status == models.OrderStatusShipped || order.Status == models.OrderStatusCompleted {
 		return nil, fmt.Errorf("订单已发货或已完成，无法取消")
 	}
 
-	if order.Status == "cancelled" {
+	if order.Status == models.OrderStatusCancelled {
 		return nil, fmt.Errorf("订单已取消")
 	}
 
@@ -69,7 +70,7 @@ func (l *CancelOrderLogic) CancelOrder(req *types.CancelOrderRequest, orderId st
 	}
 
 	// 更新订单状态
-	err = l.svcCtx.Repos.OrderRepo.UpdateStatus(l.ctx, id, "cancelled")
+	err = l.svcCtx.Repos.OrderRepo.UpdateStatus(l.ctx, id, models.OrderStatusCancelled)
 	if err != nil {
 		return nil, fmt.Errorf("取消订单失败: %v", err)
 	}
@@ -77,7 +78,7 @@ func (l *CancelOrderLogic) CancelOrder(req *types.CancelOrderRequest, orderId st
 	// 如果已支付，需要退款
 	refundStatus := "none"
 	refundAmount := 0.0
-	if order.PaymentStatus == "paid" {
+	if order.PaymentStatus == 1 { // 1表示已支付
 		refundStatus = "processing"
 		refundAmount = order.Total
 		logx.Infof("订单 %s 退款处理中，金额: %.2f", order.OrderNo, refundAmount)

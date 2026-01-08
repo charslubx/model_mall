@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	"model_mall_backend/backend/internal/models"
 	"model_mall_backend/backend/internal/svc"
 	"model_mall_backend/backend/internal/types"
 
@@ -55,7 +56,7 @@ func (l *PayOrderLogic) PayOrder(req *types.PayOrderRequest, orderId string) (re
 	}
 
 	// 检查订单状态
-	if order.Status != "pending" {
+	if order.Status != models.OrderStatusPending {
 		return nil, fmt.Errorf("订单状态不允许支付")
 	}
 
@@ -64,8 +65,8 @@ func (l *PayOrderLogic) PayOrder(req *types.PayOrderRequest, orderId string) (re
 
 	// 模拟支付成功，更新订单状态
 	now := time.Now()
-	order.Status = "paid"
-	order.PaymentStatus = "paid"
+	order.Status = models.OrderStatusPaid
+	order.PaymentStatus = 1 // 1表示已支付
 	order.PaidAt = &now
 
 	err = l.svcCtx.Repos.OrderRepo.Update(l.ctx, order)

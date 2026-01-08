@@ -2,11 +2,31 @@ package repository
 
 import (
 	"context"
+	"strconv"
 
 	"model_mall_backend/backend/internal/models"
 
 	"gorm.io/gorm"
 )
+
+// stringStatusToInt 将字符串状态转换为整数
+func stringStatusToInt(status string) int {
+	statusMap := map[string]int{
+		"pending":   models.OrderStatusPending,
+		"paid":      models.OrderStatusPaid,
+		"shipped":   models.OrderStatusShipped,
+		"completed": models.OrderStatusCompleted,
+		"cancelled": models.OrderStatusCancelled,
+	}
+	if s, ok := statusMap[status]; ok {
+		return s
+	}
+	// 尝试直接解析为整数
+	if i, err := strconv.Atoi(status); err == nil {
+		return i
+	}
+	return -1 // 无效状态
+}
 
 type OrderRepository struct {
 	db *gorm.DB
@@ -78,11 +98,11 @@ func (r *OrderRepository) Update(ctx context.Context, order *models.Order) error
 }
 
 // UpdateStatus 更新订单状态
-func (r *OrderRepository) UpdateStatus(ctx context.Context, id int64, status string) error {
+func (r *OrderRepository) UpdateStatus(ctx context.Context, id int64, status int) error {
 	return r.db.WithContext(ctx).
 		Model(&models.Order{}).
 		Where("id = ?", id).
-		Update("status", status).Error
+		Update("order_status", status).Error
 }
 
 // ListByUserID 获取用户的订单列表
@@ -94,7 +114,10 @@ func (r *OrderRepository) ListByUserID(ctx context.Context, userID int64, page, 
 
 	// 状态条件
 	if status != "" {
-		db = db.Where("status = ?", status)
+		statusInt := stringStatusToInt(status)
+		if statusInt >= 0 {
+			db = db.Where("order_status = ?", statusInt)
+		}
 	}
 
 	// 获取总数
@@ -125,12 +148,15 @@ func (r *OrderRepository) ListByMerchant(ctx context.Context, merchantID int64, 
 	// 通过订单项关联查询商户的订单
 	db = db.Joins("INNER JOIN order_items ON orders.id = order_items.order_id").
 		Joins("INNER JOIN products ON order_items.product_id = products.id").
-		Where("products.merchant_id = ?", merchantID).
+		Where("products.seller_id = ?", merchantID).
 		Group("orders.id")
 
 	// 状态条件
 	if status != "" {
-		db = db.Where("orders.status = ?", status)
+		statusInt := stringStatusToInt(status)
+		if statusInt >= 0 {
+			db = db.Where("orders.order_status = ?", statusInt)
+		}
 	}
 
 	// 获取总数
@@ -159,7 +185,7 @@ func (r *OrderRepository) GetByUserID(ctx context.Context, userID int64, status 
 	return r.ListByUserID(ctx, userID, page, pageSize, status)
 }
 
-// GetByMerchantID 获取商户订单列表(别名方法)
-func (r *OrderRepository) GetByMerchantID(ctx context.Context, merchantID int64, status string, page, pageSize int) ([]*models.Order, int64, error) {
+// GetBySellerID 获取商户订单列表(别名方法)
+func (r *OrderRepository) GetBySellerID(ctx context.Context, merchantID int64, status string, page, pageSize int) ([]*models.Order, int64, error) {
 	return r.ListByMerchant(ctx, merchantID, page, pageSize, status)
 }

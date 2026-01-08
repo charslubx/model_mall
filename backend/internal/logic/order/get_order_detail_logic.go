@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"model_mall_backend/backend/internal/models"
 	"model_mall_backend/backend/internal/svc"
 	"model_mall_backend/backend/internal/types"
 
@@ -68,26 +69,10 @@ func (l *GetOrderDetailLogic) GetOrderDetail(orderId string) (resp *types.OrderD
 			Name:      item.Name,
 			Price:     item.Price,
 			Quantity:  item.Quantity,
-			Color:     item.Color,
-			Size:      item.Size,
+			Color:     "", // OrderItem模型中没有Color字段
+			Size:      "", // OrderItem模型中没有Size字段
 			Image:     item.Image,
 		})
-	}
-
-	// 状态文本映射
-	statusTextMap := map[string]string{
-		"pending":   "待付款",
-		"paid":      "已付款",
-		"shipped":   "已发货",
-		"completed": "已完成",
-		"cancelled": "已取消",
-	}
-
-	// 支付方式文本
-	paymentMethodMap := map[string]string{
-		"alipay": "支付宝",
-		"wechat": "微信支付",
-		"union":  "银联支付",
 	}
 
 	// 构造时间线
@@ -116,7 +101,7 @@ func (l *GetOrderDetailLogic) GetOrderDetail(orderId string) (resp *types.OrderD
 	}
 
 	// 订单完成时间（使用UpdatedAt作为替代）
-	if order.Status == "completed" {
+	if order.Status == models.OrderStatusCompleted {
 		timeline = append(timeline, types.TimelineItem{
 			Date:        order.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
 			Status:      "已完成",
@@ -124,12 +109,13 @@ func (l *GetOrderDetailLogic) GetOrderDetail(orderId string) (resp *types.OrderD
 		})
 	}
 
+	statusStr := OrderStatusToString(order.Status)
 	resp = &types.OrderDetail{
 		Id:         orderId,
 		OrderNo:    order.OrderNo,
 		Date:       order.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
-		Status:     order.Status,
-		StatusText: statusTextMap[order.Status],
+		Status:     statusStr,
+		StatusText: OrderStatusTextMap[statusStr],
 		Items:      orderItems,
 		Shipping: types.ShippingInfo{
 			Method:          "快递配送",
@@ -137,14 +123,14 @@ func (l *GetOrderDetailLogic) GetOrderDetail(orderId string) (resp *types.OrderD
 			Recipient:       order.ShippingName,
 			Phone:           order.ShippingPhone,
 			TrackingNumber:  order.TrackingNumber,
-			ShippingCompany: order.ShippingCompany,
+			ShippingCompany: "", // Order模型中没有ShippingCompany字段
 		},
 		Payment: types.PaymentInfo{
 			Method:     order.PaymentMethod,
-			MethodText: paymentMethodMap[order.PaymentMethod],
-			Subtotal:   order.Subtotal,
-			Shipping:   order.ShippingFee,
-			Tax:        order.Tax,
+			MethodText: PaymentMethodTextMap[order.PaymentMethod],
+			Subtotal:   order.Total * 0.9, // 假设运费占10%
+			Shipping:   order.Total * 0.1,
+			Tax:        0,
 			Total:      order.Total,
 			PaidAt: func() string {
 				if order.PaidAt != nil {

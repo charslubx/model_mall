@@ -7,18 +7,17 @@ import (
 // User 用户表
 type User struct {
 	ID           int64      `json:"id" gorm:"primaryKey;autoIncrement;comment:用户ID"`
-	Username     string     `json:"username" gorm:"type:varchar(50);uniqueIndex;not null;comment:用户名"`
-	Name         string     `json:"name" gorm:"type:varchar(100);not null;comment:姓名"`
+	Username     string     `json:"username" gorm:"type:varchar(50);uniqueIndex;not null;comment:用户名（登录用）"`
 	Email        string     `json:"email" gorm:"type:varchar(100);uniqueIndex;not null;comment:邮箱"`
 	Phone        string     `json:"phone" gorm:"type:varchar(20);uniqueIndex;comment:手机号"`
 	Password     string     `json:"-" gorm:"type:varchar(255);not null;comment:密码哈希"`
 	Avatar       string     `json:"avatar" gorm:"type:varchar(255);comment:头像URL"`
-	Nickname     string     `json:"nickname" gorm:"type:varchar(50);comment:昵称"`
+	Nickname     string     `json:"nickname" gorm:"type:varchar(50);comment:昵称/显示名称"`
 	Gender       int8       `json:"gender" gorm:"type:smallint;default:0;comment:性别 0-未知 1-男 2-女"`
 	Birthday     *time.Time `json:"birthday" gorm:"type:date;comment:生日"`
 	Status       int8       `json:"status" gorm:"type:smallint;default:1;comment:状态 0-禁用 1-正常"`
-	UserType     string     `json:"user_type" gorm:"type:varchar(20);not null;default:'customer';comment:用户类型 customer-顾客 merchant-商户"`
-	MerchantName string     `json:"merchant_name" gorm:"type:varchar(100);comment:商户名称"`
+	UserType     string     `json:"user_type" gorm:"type:varchar(20);not null;default:'customer';comment:用户类型 customer-顾客 merchant-商户 admin-管理员"`
+	MerchantName string     `json:"merchant_name" gorm:"type:varchar(100);comment:商户名称（仅商户使用）"`
 	Description  string     `json:"description" gorm:"type:text;comment:商户描述"`
 	RoleID       int64      `json:"role_id" gorm:"not null;comment:角色ID"`
 	LastLoginAt  *time.Time `json:"last_login_at" gorm:"comment:最后登录时间"`

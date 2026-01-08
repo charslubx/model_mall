@@ -5,7 +5,10 @@ package user
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"os"
+	"time"
 
 	"model_mall_backend/backend/internal/svc"
 	"model_mall_backend/backend/internal/types"
@@ -29,8 +32,28 @@ func NewGetProfileLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetPro
 }
 
 func (l *GetProfileLogic) GetProfile() (resp *types.UserProfile, err error) {
+	// #region agent log
+	func() {
+		f, _ := os.OpenFile("/home/model_mall/.cursor/debug.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if f != nil {
+			defer f.Close()
+			data, _ := json.Marshal(map[string]interface{}{"sessionId": "debug-session", "runId": "run1", "hypothesisId": "A,C", "location": "get_profile_logic.go:34", "message": "GetProfile entry - checking context", "data": map[string]interface{}{"contextValue": l.ctx.Value("userId"), "contextType": fmt.Sprintf("%T", l.ctx.Value("userId"))}, "timestamp": time.Now().UnixMilli()})
+			f.Write(append(data, '\n'))
+		}
+	}()
+	// #endregion
 	// 获取用户ID
 	userId, ok := l.ctx.Value("userId").(int64)
+	// #region agent log
+	func() {
+		f, _ := os.OpenFile("/home/model_mall/.cursor/debug.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if f != nil {
+			defer f.Close()
+			data, _ := json.Marshal(map[string]interface{}{"sessionId": "debug-session", "runId": "run1", "hypothesisId": "A,C", "location": "get_profile_logic.go:38", "message": "Context userId extraction result", "data": map[string]interface{}{"userId": userId, "ok": ok, "willReturnError": !ok}, "timestamp": time.Now().UnixMilli()})
+			f.Write(append(data, '\n'))
+		}
+	}()
+	// #endregion
 	if !ok {
 		return nil, fmt.Errorf("未授权访问")
 	}
@@ -64,7 +87,7 @@ func (l *GetProfileLogic) GetProfile() (resp *types.UserProfile, err error) {
 
 	resp = &types.UserProfile{
 		Id:        fmt.Sprintf("%d", user.ID),
-		Name:      user.Name,
+		Name:      user.Nickname,
 		Email:     user.Email,
 		Phone:     user.Phone,
 		Avatar:    user.Avatar,

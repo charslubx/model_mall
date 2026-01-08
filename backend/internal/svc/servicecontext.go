@@ -4,10 +4,11 @@ import (
 	"context"
 	"log"
 
-	"github.com/zeromicro/go-zero/rest"
 	"model_mall_backend/backend/internal/config"
 	"model_mall_backend/backend/internal/middleware"
 	"model_mall_backend/backend/internal/repository"
+
+	"github.com/zeromicro/go-zero/rest"
 )
 
 type ServiceContext struct {
@@ -54,7 +55,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 
 	svcCtx := &ServiceContext{
 		Config:        c,
-		JWTMiddleware: middleware.NewJWTMiddleware().Handle,
+		JWTMiddleware: middleware.NewJwtMiddlewareWithRedis(c.Auth.AccessSecret, redisHelper.GetClient()).Handle,
 		LogHelper:     logHelper,
 		PGHelper:      pgHelper,
 		MySqlHelper:   mysqlHelper,

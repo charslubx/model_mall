@@ -23,45 +23,45 @@ import (
 
 func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 	server.AddRoutes(
-		[]rest.Route{
-			{
+		rest.WithMiddlewares(
+			[]rest.Middleware{serverCtx.JWTMiddleware},
+			rest.Route{
 				// 获取系统数据统计
 				Method:  http.MethodGet,
 				Path:    "/admin/dashboard",
 				Handler: admin.GetAdminDashboardHandler(serverCtx),
 			},
-			{
+			rest.Route{
 				// 获取订单分析数据
 				Method:  http.MethodGet,
 				Path:    "/admin/orders/analytics",
 				Handler: admin.GetOrderAnalyticsHandler(serverCtx),
 			},
-			{
+			rest.Route{
 				// 获取标签分析数据
 				Method:  http.MethodGet,
 				Path:    "/admin/tags/analytics",
 				Handler: admin.GetTagAnalyticsHandler(serverCtx),
 			},
-			{
+			rest.Route{
 				// 获取用户列表
 				Method:  http.MethodGet,
 				Path:    "/admin/users",
 				Handler: admin.GetAdminUsersHandler(serverCtx),
 			},
-			{
+			rest.Route{
 				// 获取用户详情
 				Method:  http.MethodGet,
 				Path:    "/admin/users/:id",
 				Handler: admin.GetAdminUserDetailHandler(serverCtx),
 			},
-			{
+			rest.Route{
 				// 更新用户状态
 				Method:  http.MethodPut,
 				Path:    "/admin/users/:id/status",
 				Handler: admin.UpdateUserStatusHandler(serverCtx),
 			},
-		},
-		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
+		),
 		rest.WithPrefix("/api"),
 	)
 
@@ -96,138 +96,138 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 	)
 
 	server.AddRoutes(
-		[]rest.Route{
-			{
+		rest.WithMiddlewares(
+			[]rest.Middleware{serverCtx.JWTMiddleware},
+			rest.Route{
 				// 用户登出
 				Method:  http.MethodPost,
 				Path:    "/auth/logout",
 				Handler: auth.LogoutHandler(serverCtx),
 			},
-			{
+			rest.Route{
 				// 获取当前用户信息
 				Method:  http.MethodGet,
 				Path:    "/auth/user",
 				Handler: auth.GetCurrentUserHandler(serverCtx),
 			},
-		},
-		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
+		),
 		rest.WithPrefix("/api"),
 	)
 
 	server.AddRoutes(
-		[]rest.Route{
-			{
+		rest.WithMiddlewares(
+			[]rest.Middleware{serverCtx.JWTMiddleware},
+			rest.Route{
 				// 获取购物车列表
 				Method:  http.MethodGet,
 				Path:    "/cart",
 				Handler: cart.GetCartHandler(serverCtx),
 			},
-			{
+			rest.Route{
 				// 添加商品到购物车
 				Method:  http.MethodPost,
 				Path:    "/cart",
 				Handler: cart.AddToCartHandler(serverCtx),
 			},
-			{
+			rest.Route{
 				// 清空购物车
 				Method:  http.MethodDelete,
 				Path:    "/cart",
 				Handler: cart.ClearCartHandler(serverCtx),
 			},
-			{
+			rest.Route{
 				// 更新购物车商品数量
 				Method:  http.MethodPut,
 				Path:    "/cart/:itemId",
 				Handler: cart.UpdateCartHandler(serverCtx),
 			},
-			{
+			rest.Route{
 				// 删除购物车商品
 				Method:  http.MethodDelete,
 				Path:    "/cart/:itemId",
 				Handler: cart.DeleteCartItemHandler(serverCtx),
 			},
-		},
-		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
+		),
 		rest.WithPrefix("/api"),
 	)
 
 	server.AddRoutes(
-		[]rest.Route{
-			{
+		rest.WithMiddlewares(
+			[]rest.Middleware{serverCtx.JWTMiddleware},
+			rest.Route{
 				// 获取商户数据分析
 				Method:  http.MethodGet,
 				Path:    "/merchant/analytics",
 				Handler: merchant.GetMerchantAnalyticsHandler(serverCtx),
 			},
-			{
+			rest.Route{
 				// 获取商户数据统计
 				Method:  http.MethodGet,
 				Path:    "/merchant/dashboard",
 				Handler: merchant.GetMerchantDashboardHandler(serverCtx),
 			},
-			{
+			rest.Route{
 				// 获取商户信息
 				Method:  http.MethodGet,
 				Path:    "/merchant/profile",
 				Handler: merchant.GetMerchantProfileHandler(serverCtx),
 			},
-			{
+			rest.Route{
 				// 更新商户信息
 				Method:  http.MethodPut,
 				Path:    "/merchant/profile",
 				Handler: merchant.UpdateMerchantProfileHandler(serverCtx),
 			},
-		},
-		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
+		),
 		rest.WithPrefix("/api"),
 	)
 
 	server.AddRoutes(
-		[]rest.Route{
-			{
+		rest.WithMiddlewares(
+			[]rest.Middleware{serverCtx.JWTMiddleware},
+			rest.Route{
 				// 获取商户订单列表
 				Method:  http.MethodGet,
 				Path:    "/merchant/orders",
 				Handler: order.GetMerchantOrdersHandler(serverCtx),
 			},
-			{
+			rest.Route{
 				// 商户发货
 				Method:  http.MethodPut,
 				Path:    "/merchant/orders/:id/ship",
 				Handler: order.ShipOrderHandler(serverCtx),
 			},
-			{
+			rest.Route{
 				// 创建订单
 				Method:  http.MethodPost,
 				Path:    "/orders",
 				Handler: order.CreateOrderHandler(serverCtx),
 			},
-			{
+			rest.Route{
 				// 获取订单列表
 				Method:  http.MethodGet,
 				Path:    "/orders",
 				Handler: order.GetOrdersHandler(serverCtx),
 			},
-			{
+			rest.Route{
 				// 获取订单详情
 				Method:  http.MethodGet,
 				Path:    "/orders/:id",
 				Handler: order.GetOrderDetailHandler(serverCtx),
 			},
-			{
+			rest.Route{
 				// 取消订单
 				Method:  http.MethodPut,
 				Path:    "/orders/:id/cancel",
 				Handler: order.CancelOrderHandler(serverCtx),
 			},
-			{
+			rest.Route{
 				// 支付订单
 				Method:  http.MethodPost,
 				Path:    "/orders/:id/pay",
 				Handler: order.PayOrderHandler(serverCtx),
 			},
-		},
-		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
+		),
 		rest.WithPrefix("/api"),
 	)
 
@@ -258,40 +258,37 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 	server.AddRoutes(
 		rest.WithMiddlewares(
 			[]rest.Middleware{serverCtx.JWTMiddleware},
-			[]rest.Route{
-				{
-					// 获取商户商品列表
-					Method:  http.MethodGet,
-					Path:    "/merchant/products",
-					Handler: product.GetMerchantProductsHandler(serverCtx),
-				},
-				{
-					// 创建商品（商户）
-					Method:  http.MethodPost,
-					Path:    "/products",
-					Handler: product.CreateProductHandler(serverCtx),
-				},
-				{
-					// 更新商品（商户）
-					Method:  http.MethodPut,
-					Path:    "/products/:id",
-					Handler: product.UpdateProductHandler(serverCtx),
-				},
-				{
-					// 删除商品（商户）
-					Method:  http.MethodDelete,
-					Path:    "/products/:id",
-					Handler: product.DeleteProductHandler(serverCtx),
-				},
-				{
-					// AI生成商品标签
-					Method:  http.MethodPost,
-					Path:    "/products/generate-tags",
-					Handler: product.GenerateTagsHandler(serverCtx),
-				},
-			}...,
+			rest.Route{
+				// 获取商户商品列表
+				Method:  http.MethodGet,
+				Path:    "/merchant/products",
+				Handler: product.GetMerchantProductsHandler(serverCtx),
+			},
+			rest.Route{
+				// 创建商品（商户）
+				Method:  http.MethodPost,
+				Path:    "/products",
+				Handler: product.CreateProductHandler(serverCtx),
+			},
+			rest.Route{
+				// 更新商品（商户）
+				Method:  http.MethodPut,
+				Path:    "/products/:id",
+				Handler: product.UpdateProductHandler(serverCtx),
+			},
+			rest.Route{
+				// 删除商品（商户）
+				Method:  http.MethodDelete,
+				Path:    "/products/:id",
+				Handler: product.DeleteProductHandler(serverCtx),
+			},
+			rest.Route{
+				// AI生成商品标签
+				Method:  http.MethodPost,
+				Path:    "/products/generate-tags",
+				Handler: product.GenerateTagsHandler(serverCtx),
+			},
 		),
-		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
 		rest.WithPrefix("/api"),
 	)
 
@@ -338,58 +335,58 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 	)
 
 	server.AddRoutes(
-		[]rest.Route{
-			{
+		rest.WithMiddlewares(
+			[]rest.Middleware{serverCtx.JWTMiddleware},
+			rest.Route{
 				// 上传文件
 				Method:  http.MethodPost,
 				Path:    "/upload/file",
 				Handler: upload.UploadFileHandler(serverCtx),
 			},
-			{
+			rest.Route{
 				// 上传图片
 				Method:  http.MethodPost,
 				Path:    "/upload/image",
 				Handler: upload.UploadImageHandler(serverCtx),
 			},
-		},
-		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
+		),
 		rest.WithPrefix("/api"),
 	)
 
 	server.AddRoutes(
-		[]rest.Route{
-			{
+		rest.WithMiddlewares(
+			[]rest.Middleware{serverCtx.JWTMiddleware},
+			rest.Route{
 				// 上传用户头像
 				Method:  http.MethodPost,
 				Path:    "/user/avatar",
 				Handler: user.UploadAvatarHandler(serverCtx),
 			},
-			{
+			rest.Route{
 				// 获取用户订单历史
 				Method:  http.MethodGet,
 				Path:    "/user/orders",
 				Handler: user.GetUserOrdersHandler(serverCtx),
 			},
-			{
+			rest.Route{
 				// 修改密码
 				Method:  http.MethodPut,
 				Path:    "/user/password",
 				Handler: user.ChangePasswordHandler(serverCtx),
 			},
-			{
+			rest.Route{
 				// 获取用户资料
 				Method:  http.MethodGet,
 				Path:    "/user/profile",
 				Handler: user.GetProfileHandler(serverCtx),
 			},
-			{
+			rest.Route{
 				// 更新用户资料
 				Method:  http.MethodPut,
 				Path:    "/user/profile",
 				Handler: user.UpdateProfileHandler(serverCtx),
 			},
-		},
-		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
+		),
 		rest.WithPrefix("/api"),
 	)
 }

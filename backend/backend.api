@@ -28,7 +28,7 @@ type PageInfo {
 type LoginRequest {
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required"`
-	UserType string `json:"userType" validate:"required,oneof=customer merchant"`
+	UserType string `json:"userType,optional"`
 }
 
 type RegisterRequest {
@@ -36,9 +36,9 @@ type RegisterRequest {
 	Email           string `json:"email" validate:"required,email"`
 	Password        string `json:"password" validate:"required,min=8"`
 	UserType        string `json:"userType" validate:"required,oneof=customer merchant"`
-	Phone           string `json:"phone,omitempty"`
-	MerchantName    string `json:"merchantName,omitempty"`
-	BusinessLicense string `json:"businessLicense,omitempty"`
+	Phone           string `json:"phone,optional"`
+	MerchantName    string `json:"merchantName,optional"`
+	BusinessLicense string `json:"businessLicense,optional"`
 }
 
 type UserInfo {
@@ -494,11 +494,11 @@ type UserProfile {
 }
 
 type UpdateProfileRequest {
-	Name     string `json:"name,omitempty"`
-	Email    string `json:"email,omitempty"`
-	Phone    string `json:"phone,omitempty"`
-	Gender   string `json:"gender,omitempty"`
-	Birthday string `json:"birthday,omitempty"`
+	Name     string `json:"name,optional"`
+	Email    string `json:"email,optional"`
+	Phone    string `json:"phone,optional"`
+	Gender   string `json:"gender,optional"`
+	Birthday string `json:"birthday,optional"`
 }
 
 type UpdateProfileResponse {

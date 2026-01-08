@@ -1,0 +1,4 @@
+-- 添加购物车颜色和尺寸字段
+ALTER TABLE cart_items ADD COLUMN IF NOT EXISTS color VARCHAR(50);
+ALTER TABLE cart_items ADD COLUMN IF NOT EXISTS size VARCHAR(50);
+

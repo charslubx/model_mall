@@ -67,7 +67,7 @@ func (l *GetProductsLogic) GetProducts(req *types.GetProductsRequest) (resp *typ
 
 		// 获取卖家信息(简化处理,实际应该查询用户表)
 		seller := types.SellerInfo{
-			Id:   fmt.Sprintf("%d", p.MerchantID),
+			Id:   fmt.Sprintf("%d", p.SellerID),
 			Name: "商户名称", // TODO: 从用户表查询
 		}
 

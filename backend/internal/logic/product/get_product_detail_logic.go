@@ -82,7 +82,7 @@ func (l *GetProductDetailLogic) GetProductDetail(productId string) (resp *types.
 
 	// 获取卖家信息
 	seller := types.SellerInfo{
-		Id:     fmt.Sprintf("%d", product.MerchantID),
+		Id:     fmt.Sprintf("%d", product.SellerID),
 		Name:   "商户名称", // TODO: 从用户表查询
 		Rating: 4.8,
 	}

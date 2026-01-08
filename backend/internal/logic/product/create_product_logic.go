@@ -60,7 +60,7 @@ func (l *CreateProductLogic) CreateProduct(req *types.CreateProductRequest) (res
 		Features:       string(featuresJSON),
 		Specifications: string(specificationsJSON),
 		Status:         1, // 默认在售
-		MerchantID:     merchantID,
+		SellerID:       merchantID,
 		Rating:         0,
 		Reviews:        0,
 		Sales:          0,

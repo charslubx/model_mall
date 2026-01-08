@@ -5,7 +5,9 @@ package auth
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"os"
 	"time"
 
 	"model_mall_backend/backend/internal/svc"
@@ -48,10 +50,10 @@ func (l *LoginLogic) Login(req *types.LoginRequest) (resp *types.LoginResponse, 
 		return nil, fmt.Errorf("用户不存在或密码错误")
 	}
 
-	// 检查用户类型
-	userType := getUserType(user.RoleID)
-	if userType != req.UserType {
-		return nil, fmt.Errorf("用户类型不匹配")
+	// 获取用户类型
+	userType := user.UserType
+	if userType == "" {
+		userType = getUserType(user.RoleID)
 	}
 
 	// 生成JWT token
@@ -94,9 +96,30 @@ func (l *LoginLogic) getJwtToken(secretKey string, iat, seconds, userId int64, u
 	claims["iat"] = iat
 	claims["userId"] = userId
 	claims["username"] = username
+	// #region agent log
+	func() {
+		f, _ := os.OpenFile("/home/model_mall/.cursor/debug.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if f != nil {
+			defer f.Close()
+			data, _ := json.Marshal(map[string]interface{}{"sessionId": "debug-session", "runId": "run1", "hypothesisId": "B,D", "location": "login_logic.go:96", "message": "Generating JWT token", "data": map[string]interface{}{"secretKeyPrefix": secretKey[:20], "userId": userId, "username": username, "claims": claims}, "timestamp": time.Now().UnixMilli()})
+			f.Write(append(data, '\n'))
+		}
+	}()
+	// #endregion
 	token := jwt.New(jwt.SigningMethodHS256)
 	token.Claims = claims
-	return token.SignedString([]byte(secretKey))
+	signedToken, err := token.SignedString([]byte(secretKey))
+	// #region agent log
+	func() {
+		f, _ := os.OpenFile("/home/model_mall/.cursor/debug.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if f != nil {
+			defer f.Close()
+			data, _ := json.Marshal(map[string]interface{}{"sessionId": "debug-session", "runId": "run1", "hypothesisId": "B", "location": "login_logic.go:103", "message": "JWT token signed", "data": map[string]interface{}{"tokenPrefix": signedToken[:50], "error": err}, "timestamp": time.Now().UnixMilli()})
+			f.Write(append(data, '\n'))
+		}
+	}()
+	// #endregion
+	return signedToken, err
 }
 
 func getUserType(roleID int64) string {

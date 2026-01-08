@@ -38,7 +38,7 @@ func (l *GetSellerProductsLogic) GetSellerProducts(req *types.GetSellerProductsR
 	}
 
 	// 查询卖家商品列表
-	products, total, err := l.svcCtx.Repos.ProductRepo.GetByMerchantID(l.ctx, id, req.Category, req.SortBy, req.Page, req.PageSize)
+	products, total, err := l.svcCtx.Repos.ProductRepo.GetBySellerID(l.ctx, id, req.Category, req.SortBy, req.Page, req.PageSize)
 	if err != nil {
 		return nil, fmt.Errorf("获取商品列表失败: %v", err)
 	}
@@ -63,9 +63,9 @@ func (l *GetSellerProductsLogic) GetSellerProducts(req *types.GetSellerProductsR
 		}
 
 		// 获取卖家信息
-		seller, _ := l.svcCtx.Repos.UserRepo.GetByID(l.ctx, product.MerchantID)
+		seller, _ := l.svcCtx.Repos.UserRepo.GetByID(l.ctx, product.SellerID)
 		sellerInfo := types.SellerInfo{
-			Id:   fmt.Sprintf("%d", product.MerchantID),
+			Id:   fmt.Sprintf("%d", product.SellerID),
 			Name: "未知商户",
 		}
 		if seller != nil {

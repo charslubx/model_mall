@@ -58,21 +58,13 @@ func (l *GetOrdersLogic) GetOrders(req *types.GetOrdersRequest) (resp *types.Get
 			})
 		}
 
-		// 状态文本映射
-		statusTextMap := map[string]string{
-			"pending":   "待付款",
-			"paid":      "已付款",
-			"shipped":   "已发货",
-			"completed": "已完成",
-			"cancelled": "已取消",
-		}
-
+		statusStr := OrderStatusToString(order.Status)
 		orderList = append(orderList, types.OrderListItem{
 			Id:         fmt.Sprintf("%d", order.ID),
 			OrderNo:    order.OrderNo,
 			Date:       order.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
-			Status:     order.Status,
-			StatusText: statusTextMap[order.Status],
+			Status:     statusStr,
+			StatusText: OrderStatusTextMap[statusStr],
 			Total:      order.Total,
 			ItemCount:  len(orderItems),
 			Items:      orderItems,

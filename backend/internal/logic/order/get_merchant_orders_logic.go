@@ -36,7 +36,7 @@ func (l *GetMerchantOrdersLogic) GetMerchantOrders(req *types.GetOrdersRequest) 
 	}
 
 	// 查询商户订单列表
-	orders, total, err := l.svcCtx.Repos.OrderRepo.GetByMerchantID(l.ctx, userId, req.Status, req.Page, req.PageSize)
+	orders, total, err := l.svcCtx.Repos.OrderRepo.GetBySellerID(l.ctx, userId, req.Status, req.Page, req.PageSize)
 	if err != nil {
 		return nil, fmt.Errorf("获取商户订单列表失败: %v", err)
 	}
@@ -65,36 +65,21 @@ func (l *GetMerchantOrdersLogic) GetMerchantOrders(req *types.GetOrdersRequest) 
 			Avatar: "",
 		}
 		if customer != nil {
-			customerInfo.Name = customer.Name
+			customerInfo.Name = customer.Nickname
 			customerInfo.Avatar = customer.Avatar
 		}
 
-		// 状态文本映射
-		statusTextMap := map[string]string{
-			"pending":   "待付款",
-			"paid":      "待发货",
-			"shipped":   "已发货",
-			"completed": "已完成",
-			"cancelled": "已取消",
-		}
-
-		// 支付方式文本
-		paymentMethodMap := map[string]string{
-			"alipay": "支付宝",
-			"wechat": "微信支付",
-			"union":  "银联支付",
-		}
-
+		statusStr := OrderStatusToString(order.Status)
 		orderList = append(orderList, types.MerchantOrderItem{
 			Id:         fmt.Sprintf("%d", order.ID),
 			OrderNo:    order.OrderNo,
 			Customer:   customerInfo,
 			Date:       order.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
-			Status:     order.Status,
-			StatusText: statusTextMap[order.Status],
+			Status:     statusStr,
+			StatusText: OrderStatusTextMap[statusStr],
 			Total:      order.Total,
 			Items:      orderItems,
-			Payment:    paymentMethodMap[order.PaymentMethod],
+			Payment:    PaymentMethodTextMap[order.PaymentMethod],
 			Address:    order.ShippingAddress,
 		})
 	}

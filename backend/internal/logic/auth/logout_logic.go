@@ -5,6 +5,7 @@ package auth
 
 import (
 	"context"
+	"fmt"
 
 	"model_mall_backend/backend/internal/svc"
 	"model_mall_backend/backend/internal/types"
@@ -28,9 +29,25 @@ func NewLogoutLogic(ctx context.Context, svcCtx *svc.ServiceContext) *LogoutLogi
 }
 
 func (l *LogoutLogic) Logout() (resp *types.BaseResponse, err error) {
-	// 登出逻辑
-	// 在实际应用中,可以将token加入黑名单(Redis)
-	// 这里简化处理,直接返回成功
+	// 从context中获取token（在中间件中设置）
+	token, ok := l.ctx.Value("token").(string)
+	if !ok || token == "" {
+		logx.Error("无法获取token")
+		return nil, fmt.Errorf("无效的token")
+	}
+
+	// 获取用户ID用于日志记录
+	userId, _ := l.ctx.Value("userId").(int64)
+
+	// 将token加入黑名单（Redis）
+	// 设置过期时间为token的剩余有效期（这里设置为24小时）
+	err = l.svcCtx.RedisHelper.GetClient().SetexCtx(l.ctx, "token_blacklist:"+token, "1", 86400)
+	if err != nil {
+		logx.Errorf("将token加入黑名单失败: %v", err)
+		return nil, fmt.Errorf("登出失败")
+	}
+
+	logx.Infof("用户 %d 登出成功，token已加入黑名单", userId)
 
 	resp = &types.BaseResponse{
 		Code:    200,

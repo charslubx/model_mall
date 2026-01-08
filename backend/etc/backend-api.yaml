@@ -8,13 +8,13 @@ PostgreSQL:
   Host: localhost
   Port: 5432
   Username: postgres
-  Password: your-password  # 请修改为实际密码
+  Password: zqy5483201
   Database: model_mall
   SSLMode: disable
 Redis:
   Host: localhost
   Port: 6379
-  Password: "zqy5483201"
+  Password:
   DB: 0
 MySQL:
   Host: localhost

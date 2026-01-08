@@ -119,7 +119,7 @@ func (r *ProductRepository) ListByMerchant(ctx context.Context, merchantID int64
 	db := r.db.WithContext(ctx).Model(&models.Product{})
 
 	// 商户ID条件
-	db = db.Where("merchant_id = ?", merchantID)
+	db = db.Where("seller_id = ?", merchantID)
 
 	// 构建查询条件
 	if category != "" {
@@ -203,8 +203,8 @@ func (r *ProductRepository) Search(ctx context.Context, keyword, category string
 	return r.List(ctx, page, pageSize, category, keyword, sortBy, minPrice, maxPrice)
 }
 
-// GetByMerchantID 获取商户商品列表(别名方法)
-func (r *ProductRepository) GetByMerchantID(ctx context.Context, merchantID int64, category, sortBy string, page, pageSize int) ([]*models.Product, int64, error) {
+// GetBySellerID 获取商户商品列表(别名方法)
+func (r *ProductRepository) GetBySellerID(ctx context.Context, merchantID int64, category, sortBy string, page, pageSize int) ([]*models.Product, int64, error) {
 	return r.ListByMerchant(ctx, merchantID, page, pageSize, category, "", "")
 }
 
