@@ -29,6 +29,94 @@ func NewModelServiceClient(baseURL, apiKey string) *ModelServiceClient {
 	}
 }
 
+// AnomalyAnalyzeRequest 异常分析请求（供业务后端调用模型服务）
+type AnomalyAnalyzeRequest struct {
+	Chart        string            `json:"chart,omitempty"`
+	Metric       string            `json:"metric,omitempty"`
+	SeriesName   string            `json:"seriesName,omitempty"`
+	XName        string            `json:"xName,omitempty"`
+	XValue       string            `json:"xValue,omitempty"`
+	YName        string            `json:"yName,omitempty"`
+	YValue       float64           `json:"yValue"`
+	DataIndex    int               `json:"dataIndex,omitempty"`
+	SeriesValues []float64         `json:"seriesValues,omitempty"`
+	XValues      []string          `json:"xValues,omitempty"`
+	TimeRange    string            `json:"timeRange,omitempty"`
+	Filters      map[string]string `json:"filters,omitempty"`
+	Extra        map[string]any    `json:"extra,omitempty"`
+}
+
+type AnomalyAnalyzeResponse struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+	Data    struct {
+		Analysis    string   `json:"analysis"`
+		Causes      []string `json:"causes,omitempty"`
+		Actions     []string `json:"actions,omitempty"`
+		Confidence  float64  `json:"confidence,omitempty"`
+	} `json:"data"`
+}
+
+// AnalyzeAnomaly 调用模型服务进行异常原因分析
+// 约定模型服务端点：POST /api/v1/anomaly/analyze
+func (c *ModelServiceClient) AnalyzeAnomaly(req *AnomalyAnalyzeRequest) (*struct {
+	Analysis    string
+	Causes      []string
+	Actions     []string
+	Confidence  float64
+}, error) {
+	jsonData, err := json.Marshal(req)
+	if err != nil {
+		return nil, fmt.Errorf("序列化请求失败: %w", err)
+	}
+
+	url := fmt.Sprintf("%s/api/v1/anomaly/analyze", c.baseURL)
+	httpReq, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return nil, fmt.Errorf("创建请求失败: %w", err)
+	}
+
+	httpReq.Header.Set("Content-Type", "application/json")
+	if c.apiKey != "" {
+		httpReq.Header.Set("Authorization", "Bearer "+c.apiKey)
+	}
+
+	resp, err := c.httpClient.Do(httpReq)
+	if err != nil {
+		return nil, fmt.Errorf("发送请求失败: %w", err)
+	}
+	defer resp.Body.Close()
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("读取响应失败: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("请求失败，状态码: %d, 响应: %s", resp.StatusCode, string(respBody))
+	}
+
+	var result AnomalyAnalyzeResponse
+	if err := json.Unmarshal(respBody, &result); err != nil {
+		return nil, fmt.Errorf("解析响应失败: %w", err)
+	}
+	if result.Code != 0 {
+		return nil, fmt.Errorf("模型服务返回错误: %s", result.Message)
+	}
+
+	return &struct {
+		Analysis    string
+		Causes      []string
+		Actions     []string
+		Confidence  float64
+	}{
+		Analysis:   result.Data.Analysis,
+		Causes:     result.Data.Causes,
+		Actions:    result.Data.Actions,
+		Confidence: result.Data.Confidence,
+	}, nil
+}
+
 // RecognitionRequest 识别请求
 type RecognitionRequest struct {
 	TaskID    string `json:"task_id"`

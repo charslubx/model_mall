@@ -17,6 +17,7 @@ import time
 import threading
 import random
 import os
+import statistics
 
 app = Flask(__name__)
 
@@ -243,6 +244,67 @@ def get_task_status(task_id):
         }
     })
 
+@app.route('/api/v1/anomaly/analyze', methods=['POST'])
+def anomaly_analyze():
+    """
+    异常原因分析（mock）
+    约定返回结构：
+      { code:0, message:"success", data:{ analysis, causes, actions, confidence } }
+    """
+    try:
+        data = request.json or {}
+        metric = data.get("metric") or "指标"
+        series_name = data.get("seriesName") or ""
+        x_value = data.get("xValue") or ""
+        y_value = data.get("yValue")
+        series_values = data.get("seriesValues") or []
+        confidence = 0.55
+
+        # 简单统计（可用就用，不可用就返回通用建议）
+        analysis_lines = []
+        if series_name:
+            analysis_lines.append(f"系列：{series_name}")
+        if x_value:
+            analysis_lines.append(f"位置：{x_value}")
+        if y_value is not None:
+            analysis_lines.append(f"{metric}：{y_value}")
+
+        if isinstance(series_values, list) and len(series_values) >= 5 and y_value is not None:
+            try:
+                others = [v for v in series_values if isinstance(v, (int, float))]
+                mean = statistics.mean(others) if others else 0
+                stdev = statistics.pstdev(others) if len(others) > 1 else 0
+                z = (float(y_value) - mean) / (stdev if stdev > 1e-9 else 1.0)
+                analysis_lines.append(f"统计：均值≈{mean:.4g}，标准差≈{stdev:.4g}，z≈{z:.2f}")
+                confidence = 0.75 if abs(z) >= 3 else (0.65 if abs(z) >= 2 else 0.55)
+            except Exception:
+                pass
+
+        analysis = "；".join(analysis_lines) + "。建议结合业务变更与数据链路进行排查。"
+        causes = [
+            "业务侧：活动/投放/价格/库存变化",
+            "系统侧：下单/支付/搜索等链路异常导致指标突变",
+            "数据侧：延迟补数、重复上报、口径变更导致尖峰或塌陷"
+        ]
+        actions = [
+            "拆解到渠道/品类/店铺/地区，定位贡献最大的子维度",
+            "对比相关指标（访客→加购→下单→支付）确认是否全链路一致",
+            "检查采集/ETL任务日志、去重与过滤规则是否变更或重跑"
+        ]
+
+        return jsonify({
+            "code": 0,
+            "message": "success",
+            "data": {
+                "analysis": analysis,
+                "causes": causes,
+                "actions": actions,
+                "confidence": confidence
+            }
+        })
+    except Exception as e:
+        return jsonify({"code": 500, "message": str(e)}), 500
+
 
 @app.route('/health', methods=['GET'])
 def health():
@@ -262,6 +324,7 @@ def print_banner():
     print("  POST /api/v1/recognize/upload  - 上传图片识别")
     print("  POST /api/v1/recognize/url     - URL图片识别")
     print("  GET  /api/v1/task/:id/status   - 查询任务状态")
+    print("  POST /api/v1/anomaly/analyze   - 异常原因分析（mock）")
     print("  GET  /health                    - 健康检查")
     print("\n" + "="*60)
     print("服务已启动，等待请求...\n")
