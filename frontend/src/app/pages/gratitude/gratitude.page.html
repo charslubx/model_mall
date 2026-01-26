@@ -1,0 +1,101 @@
+<div class="page">
+  <div class="container">
+    <div class="hero">
+      <div class="hero-title">
+        <span class="hero-icon">🤝</span>
+        <span>IFA DAP BE YIELD&PCS Sustaining Cool</span>
+      </div>
+      <div class="hero-subtitle">Recording every support, appreciating every help</div>
+    </div>
+
+    <nz-card class="card card-blue" nzTitle="Express Your Gratitude">
+      <form nz-form nzLayout="vertical">
+        <div nz-row nzGutter="16">
+          <div nz-col nzSpan="12">
+            <nz-form-item>
+              <nz-form-label>From (Sender)</nz-form-label>
+              <nz-form-control>
+                <nz-select nzPlaceHolder="Select your name">
+                  <nz-option nzValue="AAA" nzLabel="AAA"></nz-option>
+                  <nz-option nzValue="BBB" nzLabel="BBB"></nz-option>
+                  <nz-option nzValue="CCC" nzLabel="CCC"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+
+          <div nz-col nzSpan="12">
+            <nz-form-item>
+              <nz-form-label>To (Receiver)</nz-form-label>
+              <nz-form-control>
+                <nz-select nzPlaceHolder="Select colleague's name">
+                  <nz-option nzValue="AAA" nzLabel="AAA"></nz-option>
+                  <nz-option nzValue="BBB" nzLabel="BBB"></nz-option>
+                  <nz-option nzValue="CCC" nzLabel="CCC"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+        </div>
+
+        <nz-form-item>
+          <nz-form-label>Reason</nz-form-label>
+          <nz-form-control>
+            <textarea
+              nz-input
+              rows="4"
+              placeholder="E.g., Helped debug the production line data issue..."
+            ></textarea>
+          </nz-form-control>
+        </nz-form-item>
+
+        <button nz-button nzType="primary" class="btn-submit">Submit</button>
+      </form>
+    </nz-card>
+
+    <nz-card class="card card-green" nzTitle="Gratitude Leaderboard">
+      <div class="chart">
+        <div class="chart-legend">
+          <span class="legend-swatch"></span>
+          <span class="legend-text">Appreciations Received</span>
+        </div>
+
+        <div class="chart-area">
+          <div class="chart-grid">
+            <div class="grid-line"></div>
+            <div class="grid-line"></div>
+            <div class="grid-line"></div>
+          </div>
+
+          <div class="bars">
+            <div class="bar-item">
+              <div class="bar" style="height: 140px"></div>
+              <div class="bar-label">BBB</div>
+            </div>
+            <div class="bar-item">
+              <div class="bar" style="height: 80px"></div>
+              <div class="bar-label">CCC</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </nz-card>
+
+    <div class="section-title">Recent Messages</div>
+
+    <div class="messages">
+      <nz-card class="message-card">
+        <div class="message-title">AAA thanked CCC</div>
+        <div class="message-body">感谢感谢</div>
+        <div class="message-time">Time: 2026-01-20 08:56:39</div>
+      </nz-card>
+
+      <nz-card class="message-card">
+        <div class="message-title">AAA thanked BBB</div>
+        <div class="message-body">感谢感谢</div>
+        <div class="message-time">Time: 2026-01-20 08:56:39</div>
+      </nz-card>
+    </div>
+  </div>
+</div>
+
