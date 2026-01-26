@@ -51,7 +51,7 @@
     </div>
   </div>
 
-  <div class="card mb-4" *ngIf="chartLabels?.length">
+  <div class="card mb-4" *ngIf="chartLabels.length">
     <div class="card-header bg-success text-white">
       <h5 class="mb-0">🏆 Gratitude Leaderboard</h5>
     </div>
@@ -62,7 +62,7 @@
 
   <h3 class="mt-5 mb-3">Recent Messages</h3>
 
-  <ng-container *ngIf="messages?.length; else emptyState">
+  <ng-container *ngIf="messages.length; else emptyState">
     <div class="card message-card" *ngFor="let msg of messages; trackBy: trackByMessage">
       <div class="card-body">
         <h5 class="card-title">
