@@ -2,6 +2,15 @@ import { CommonModule } from '@angular/common';
 import { Component, ElementRef, ViewChild, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Chart, type ChartConfiguration } from 'chart.js/auto';
+import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzCardModule } from 'ng-zorro-antd/card';
+import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzGridModule } from 'ng-zorro-antd/grid';
+import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzSelectModule } from 'ng-zorro-antd/select';
+import { NzTypographyModule } from 'ng-zorro-antd/typography';
+import { NzEmptyModule } from 'ng-zorro-antd/empty';
+import { NzMessageService } from 'ng-zorro-antd/message';
 
 export type GratitudeMessage = {
   sender: string;
@@ -13,12 +22,24 @@ export type GratitudeMessage = {
 @Component({
   selector: 'app-gratitude',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    NzButtonModule,
+    NzCardModule,
+    NzFormModule,
+    NzGridModule,
+    NzInputModule,
+    NzSelectModule,
+    NzTypographyModule,
+    NzEmptyModule,
+  ],
   templateUrl: './gratitude.component.html',
   styleUrl: './gratitude.component.css',
 })
 export class GratitudeComponent {
   private readonly fb = inject(FormBuilder);
+  private readonly message = inject(NzMessageService);
 
   // 组件内 Demo 数据：后续可替换为从后端 API 拉取
   users: string[] = ['Alice', 'Bob', 'Charlie', 'David'];
@@ -53,6 +74,10 @@ export class GratitudeComponent {
 
     const { sender, receiver, reason } = this.form.getRawValue();
     if (!sender || !receiver || !reason) return;
+    if (sender === receiver) {
+      this.message.warning('发送人和接收人不能相同');
+      return;
+    }
 
     this.submitting = true;
     try {
@@ -62,6 +87,7 @@ export class GratitudeComponent {
       this.recomputeLeaderboard();
 
       this.form.reset({ sender: '', receiver: '', reason: '' });
+      this.message.success('提交成功');
     } finally {
       this.submitting = false;
     }

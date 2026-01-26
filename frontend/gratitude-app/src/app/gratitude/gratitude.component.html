@@ -1,85 +1,83 @@
-<div class="container py-4">
-  <div class="text-center mb-5">
-    <h1>🤝 IFA DAP BE YIELD&PCS Sustaining Cool</h1>
-    <p class="lead">Recording every support, appreciating every help</p>
+<div class="page">
+  <div class="header">
+    <h1 nz-typography>🤝 IFA DAP BE YIELD&PCS Sustaining Cool</h1>
+    <p nz-typography nzType="secondary">Recording every support, appreciating every help</p>
   </div>
 
-  <div class="card mb-4">
-    <div class="card-header bg-primary text-white">
-      <h5 class="mb-0">Express Your Gratitude</h5>
-    </div>
-    <div class="card-body">
-      <form [formGroup]="form" (ngSubmit)="submit()">
-        <div class="row mb-3">
-          <div class="col-md-6">
-            <label for="sender" class="form-label">From (Sender)</label>
-            <select class="form-select" id="sender" formControlName="sender" required>
-              <option value="" disabled>Select your name</option>
-              <option *ngFor="let user of users" [value]="user">{{ user }}</option>
-            </select>
-          </div>
-          <div class="col-md-6">
-            <label for="receiver" class="form-label">To (Receiver)</label>
-            <select class="form-select" id="receiver" formControlName="receiver" required>
-              <option value="" disabled>Select colleague's name</option>
-              <option *ngFor="let user of users" [value]="user">{{ user }}</option>
-            </select>
-          </div>
+  <nz-card nzTitle="Express Your Gratitude" class="mb-16">
+    <form nz-form [formGroup]="form" (ngSubmit)="submit()">
+      <div nz-row [nzGutter]="16">
+        <div nz-col [nzSpan]="24" [nzMd]="12">
+          <nz-form-item>
+            <nz-form-label nzFor="sender" nzRequired>From (Sender)</nz-form-label>
+            <nz-form-control nzErrorTip="请选择发送人">
+              <nz-select
+                id="sender"
+                formControlName="sender"
+                nzPlaceHolder="Select your name"
+                nzShowSearch
+              >
+                <nz-option *ngFor="let user of users" [nzValue]="user" [nzLabel]="user" />
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
         </div>
 
-        <div class="mb-3">
-          <label for="reason" class="form-label">Reason</label>
+        <div nz-col [nzSpan]="24" [nzMd]="12">
+          <nz-form-item>
+            <nz-form-label nzFor="receiver" nzRequired>To (Receiver)</nz-form-label>
+            <nz-form-control nzErrorTip="请选择接收人">
+              <nz-select
+                id="receiver"
+                formControlName="receiver"
+                nzPlaceHolder="Select colleague's name"
+                nzShowSearch
+              >
+                <nz-option *ngFor="let user of users" [nzValue]="user" [nzLabel]="user" />
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+
+      <nz-form-item>
+        <nz-form-label nzFor="reason" nzRequired>Reason</nz-form-label>
+        <nz-form-control nzErrorTip="请填写原因">
           <textarea
-            class="form-control"
+            nz-input
             id="reason"
-            formControlName="reason"
             rows="3"
-            required
+            formControlName="reason"
             placeholder="E.g., Helped debug the production line data issue..."
           ></textarea>
-          <div class="form-text" *ngIf="form.controls.reason.value as v">
-            {{ v.length }}/500
-          </div>
-        </div>
+          <div class="hint" *ngIf="form.controls.reason.value as v">{{ v.length }}/500</div>
+        </nz-form-control>
+      </nz-form-item>
 
-        <div class="d-grid">
-          <button type="submit" class="btn btn-primary" [disabled]="form.invalid || submitting">
-            Submit
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
+      <div class="actions">
+        <button nz-button nzType="primary" [disabled]="form.invalid || submitting">Submit</button>
+      </div>
+    </form>
+  </nz-card>
 
-  <div class="card mb-4" *ngIf="chartLabels.length">
-    <div class="card-header bg-success text-white">
-      <h5 class="mb-0">🏆 Gratitude Leaderboard</h5>
-    </div>
-    <div class="card-body">
-      <canvas #gratitudeChart height="100"></canvas>
-    </div>
-  </div>
+  <nz-card *ngIf="chartLabels.length" nzTitle="🏆 Gratitude Leaderboard" class="mb-16">
+    <canvas #gratitudeChart height="100"></canvas>
+  </nz-card>
 
-  <h3 class="mt-5 mb-3">Recent Messages</h3>
+  <h3 nz-typography class="section-title">Recent Messages</h3>
 
   <ng-container *ngIf="messages.length; else emptyState">
-    <div class="card message-card" *ngFor="let msg of messages; trackBy: trackByMessage">
-      <div class="card-body">
-        <h5 class="card-title">
-          <strong>{{ msg.sender }}</strong> thanked <strong>{{ msg.receiver }}</strong>
-        </h5>
-        <p class="card-text">{{ msg.reason }}</p>
-        <p class="card-text timestamp text-end">
-          <small>Time: {{ msg.timestamp }}</small>
-        </p>
+    <nz-card class="message-card" *ngFor="let msg of messages; trackBy: trackByMessage">
+      <div class="msg-title">
+        <strong>{{ msg.sender }}</strong> thanked <strong>{{ msg.receiver }}</strong>
       </div>
-    </div>
+      <div class="msg-reason">{{ msg.reason }}</div>
+      <div class="timestamp">Time: {{ msg.timestamp }}</div>
+    </nz-card>
   </ng-container>
 
   <ng-template #emptyState>
-    <div class="alert alert-info text-center" role="alert">
-      No records yet. Be the first to express gratitude!
-    </div>
+    <nz-empty nzNotFoundContent="No records yet. Be the first to express gratitude!"></nz-empty>
   </ng-template>
 </div>
 
