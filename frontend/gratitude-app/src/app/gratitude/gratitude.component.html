@@ -1,0 +1,85 @@
+<div class="container py-4">
+  <div class="text-center mb-5">
+    <h1>🤝 IFA DAP BE YIELD&PCS Sustaining Cool</h1>
+    <p class="lead">Recording every support, appreciating every help</p>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+      <h5 class="mb-0">Express Your Gratitude</h5>
+    </div>
+    <div class="card-body">
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label for="sender" class="form-label">From (Sender)</label>
+            <select class="form-select" id="sender" formControlName="sender" required>
+              <option value="" disabled>Select your name</option>
+              <option *ngFor="let user of users" [value]="user">{{ user }}</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label for="receiver" class="form-label">To (Receiver)</label>
+            <select class="form-select" id="receiver" formControlName="receiver" required>
+              <option value="" disabled>Select colleague's name</option>
+              <option *ngFor="let user of users" [value]="user">{{ user }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label for="reason" class="form-label">Reason</label>
+          <textarea
+            class="form-control"
+            id="reason"
+            formControlName="reason"
+            rows="3"
+            required
+            placeholder="E.g., Helped debug the production line data issue..."
+          ></textarea>
+          <div class="form-text" *ngIf="form.controls.reason.value as v">
+            {{ v.length }}/500
+          </div>
+        </div>
+
+        <div class="d-grid">
+          <button type="submit" class="btn btn-primary" [disabled]="form.invalid || submitting">
+            Submit
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card mb-4" *ngIf="chartLabels?.length">
+    <div class="card-header bg-success text-white">
+      <h5 class="mb-0">🏆 Gratitude Leaderboard</h5>
+    </div>
+    <div class="card-body">
+      <canvas #gratitudeChart height="100"></canvas>
+    </div>
+  </div>
+
+  <h3 class="mt-5 mb-3">Recent Messages</h3>
+
+  <ng-container *ngIf="messages?.length; else emptyState">
+    <div class="card message-card" *ngFor="let msg of messages; trackBy: trackByMessage">
+      <div class="card-body">
+        <h5 class="card-title">
+          <strong>{{ msg.sender }}</strong> thanked <strong>{{ msg.receiver }}</strong>
+        </h5>
+        <p class="card-text">{{ msg.reason }}</p>
+        <p class="card-text timestamp text-end">
+          <small>Time: {{ msg.timestamp }}</small>
+        </p>
+      </div>
+    </div>
+  </ng-container>
+
+  <ng-template #emptyState>
+    <div class="alert alert-info text-center" role="alert">
+      No records yet. Be the first to express gratitude!
+    </div>
+  </ng-template>
+</div>
+
