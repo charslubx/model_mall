@@ -54,31 +54,7 @@
     </nz-card>
 
     <nz-card class="card card-green" nzTitle="Gratitude Leaderboard">
-      <div class="chart">
-        <div class="chart-legend">
-          <span class="legend-swatch"></span>
-          <span class="legend-text">Appreciations Received</span>
-        </div>
-
-        <div class="chart-area">
-          <div class="chart-grid">
-            <div class="grid-line"></div>
-            <div class="grid-line"></div>
-            <div class="grid-line"></div>
-          </div>
-
-          <div class="bars">
-            <div class="bar-item">
-              <div class="bar" style="height: 140px"></div>
-              <div class="bar-label">BBB</div>
-            </div>
-            <div class="bar-item">
-              <div class="bar" style="height: 80px"></div>
-              <div class="bar-label">CCC</div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <div echarts class="leaderboard-echarts" [options]="leaderboardOption"></div>
     </nz-card>
 
     <div class="section-title">Recent Messages</div>

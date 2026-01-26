@@ -4,6 +4,7 @@ import { provideRouter } from '@angular/router';
 import { registerLocaleData } from '@angular/common';
 import en from '@angular/common/locales/en';
 import { provideNzI18n, en_US } from 'ng-zorro-antd/i18n';
+import { provideEchartsCore } from 'ngx-echarts';
 
 import { routes } from './app.routes';
 
@@ -14,6 +15,9 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideAnimations(),
     provideRouter(routes),
-    provideNzI18n(en_US)
+    provideNzI18n(en_US),
+    provideEchartsCore({
+      echarts: () => import('echarts')
+    })
   ]
 };
