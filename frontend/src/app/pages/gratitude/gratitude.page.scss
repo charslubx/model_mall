@@ -73,6 +73,12 @@
   gap: 14px;
 }
 
+.messages-pagination {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
 .message-card {
   border-left: 4px solid #1677ff;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);

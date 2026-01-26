@@ -60,17 +60,26 @@
     <div class="section-title">Recent Messages</div>
 
     <div class="messages">
-      <nz-card class="message-card">
-        <div class="message-title">AAA thanked CCC</div>
-        <div class="message-body">感谢感谢</div>
-        <div class="message-time">Time: 2026-01-20 08:56:39</div>
+      <nz-card
+        class="message-card"
+        *ngFor="
+          let m of messages
+            | slice: (pageIndex - 1) * pageSize : (pageIndex - 1) * pageSize + pageSize
+        "
+      >
+        <div class="message-title">{{ m.title }}</div>
+        <div class="message-body">{{ m.body }}</div>
+        <div class="message-time">Time: {{ m.time }}</div>
       </nz-card>
+    </div>
 
-      <nz-card class="message-card">
-        <div class="message-title">AAA thanked BBB</div>
-        <div class="message-body">感谢感谢</div>
-        <div class="message-time">Time: 2026-01-20 08:56:39</div>
-      </nz-card>
+    <div class="messages-pagination">
+      <nz-pagination
+        [nzTotal]="messages.length"
+        [(nzPageIndex)]="pageIndex"
+        [(nzPageSize)]="pageSize"
+        [nzShowSizeChanger]="true"
+      ></nz-pagination>
     </div>
   </div>
 </div>
