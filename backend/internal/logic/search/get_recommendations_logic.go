@@ -43,11 +43,19 @@ func (l *GetRecommendationsLogic) GetRecommendations(req *types.GetRecommendatio
 		if err == nil {
 			product, _ := l.svcCtx.Repos.ProductRepo.GetByID(l.ctx, productId)
 			if product != nil {
+				// 获取分类名称
+				categoryName := ""
+				if product.CategoryID > 0 {
+					var category struct{ Name string }
+					l.svcCtx.OrmHelper.GetDB().Table("categories").Select("name").Where("id = ?", product.CategoryID).First(&category)
+					categoryName = category.Name
+				}
+
 				// 查询同类商品
 				similarProducts, _, _ := l.svcCtx.Repos.ProductRepo.Search(
 					l.ctx,
 					"",
-					product.Category,
+					categoryName,
 					0,
 					0,
 					"sales",

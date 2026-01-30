@@ -35,19 +35,70 @@ func (l *GetMerchantDashboardLogic) GetMerchantDashboard() (resp *types.Merchant
 		return nil, fmt.Errorf("未授权访问")
 	}
 
-	// TODO: 实现商户统计数据查询
-	// 这里使用模拟数据
-	resp = &types.MerchantDashboard{
-		ProductsCount: 128,
-		SalesCount:    1024,
-		Revenue:       98765.43,
-		OrdersCount:   856,
-		PendingOrders: 23,
-		TodaySales:    5432.10,
-		TodayOrders:   45,
+	// 获取仓储层实例
+	productRepo := l.svcCtx.Repos.ProductRepo
+	orderRepo := l.svcCtx.Repos.OrderRepo
+
+	// 统计商品总数
+	productsCount, err := productRepo.CountByMerchant(l.ctx, merchantId)
+	if err != nil {
+		logx.Errorf("统计商品总数失败: %v", err)
+		return nil, fmt.Errorf("统计数据失败")
 	}
 
-	logx.Infof("商户 %d 查询数据统计", merchantId)
+	// 统计总销量
+	salesCount, err := productRepo.GetTotalSalesByMerchant(l.ctx, merchantId)
+	if err != nil {
+		logx.Errorf("统计商品销量失败: %v", err)
+		return nil, fmt.Errorf("统计数据失败")
+	}
+
+	// 统计总收入
+	revenue, err := orderRepo.GetRevenueSumByMerchant(l.ctx, merchantId)
+	if err != nil {
+		logx.Errorf("统计总收入失败: %v", err)
+		return nil, fmt.Errorf("统计数据失败")
+	}
+
+	// 统计订单总数
+	ordersCount, err := orderRepo.CountByMerchant(l.ctx, merchantId)
+	if err != nil {
+		logx.Errorf("统计订单总数失败: %v", err)
+		return nil, fmt.Errorf("统计数据失败")
+	}
+
+	// 统计待处理订单数（待支付）
+	pendingOrders, err := orderRepo.CountByMerchantAndStatus(l.ctx, merchantId, 0)
+	if err != nil {
+		logx.Errorf("统计待处理订单失败: %v", err)
+		return nil, fmt.Errorf("统计数据失败")
+	}
+
+	// 统计今日销售额
+	todaySales, err := orderRepo.GetTodaySalesByMerchant(l.ctx, merchantId)
+	if err != nil {
+		logx.Errorf("统计今日销售额失败: %v", err)
+		return nil, fmt.Errorf("统计数据失败")
+	}
+
+	// 统计今日订单数
+	todayOrders, err := orderRepo.GetTodayOrdersByMerchant(l.ctx, merchantId)
+	if err != nil {
+		logx.Errorf("统计今日订单数失败: %v", err)
+		return nil, fmt.Errorf("统计数据失败")
+	}
+
+	resp = &types.MerchantDashboard{
+		ProductsCount: productsCount,
+		SalesCount:    salesCount,
+		Revenue:       revenue,
+		OrdersCount:   ordersCount,
+		PendingOrders: pendingOrders,
+		TodaySales:    todaySales,
+		TodayOrders:   todayOrders,
+	}
+
+	logx.Infof("商户 %d 查询数据统计成功", merchantId)
 
 	return resp, nil
 }

@@ -38,32 +38,45 @@ func (l *CreateProductLogic) CreateProduct(req *types.CreateProductRequest) (res
 		return nil, fmt.Errorf("未授权访问")
 	}
 
+	// 根据分类名称查找分类ID
+	var category models.Category
+	db := l.svcCtx.OrmHelper.GetDB()
+	err = db.Where("name = ?", req.Category).First(&category).Error
+	if err != nil {
+		// 如果分类不存在，创建新分类
+		category = models.Category{
+			Name:     req.Category,
+			ParentID: 0,
+			Level:    1,
+			Sort:     0,
+			Status:   1,
+		}
+		if err := db.Create(&category).Error; err != nil {
+			return nil, fmt.Errorf("创建分类失败: %v", err)
+		}
+	}
+
 	// 序列化JSON字段
 	imagesJSON, _ := json.Marshal(req.Images)
-	tagsJSON, _ := json.Marshal(req.Tags)
-	colorsJSON, _ := json.Marshal(req.Colors)
-	sizesJSON, _ := json.Marshal(req.Sizes)
-	featuresJSON, _ := json.Marshal(req.Features)
-	specificationsJSON, _ := json.Marshal(req.Specifications)
+
+	// 设置主图片（使用第一张图片）
+	var mainImage string
+	if len(req.Images) > 0 {
+		mainImage = req.Images[0]
+	}
 
 	// 创建商品
 	product := &models.Product{
-		Name:           req.Name,
-		Description:    req.Description,
-		Category:       req.Category,
-		Price:          req.Price,
-		Stock:          req.Stock,
-		Images:         string(imagesJSON),
-		Tags:           string(tagsJSON),
-		Colors:         string(colorsJSON),
-		Sizes:          string(sizesJSON),
-		Features:       string(featuresJSON),
-		Specifications: string(specificationsJSON),
-		Status:         1, // 默认在售
-		SellerID:       merchantID,
-		Rating:         0,
-		Reviews:        0,
-		Sales:          0,
+		Name:        req.Name,
+		Description: req.Description,
+		CategoryID:  category.ID,
+		Price:       req.Price,
+		Stock:       req.Stock,
+		Image:       mainImage,
+		Images:      string(imagesJSON),
+		Status:      1, // 默认在售
+		SellerID:    merchantID,
+		Sales:       0,
 	}
 
 	err = l.svcCtx.Repos.ProductRepo.Create(l.ctx, product)

@@ -386,6 +386,42 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Path:    "/user/profile",
 				Handler: user.UpdateProfileHandler(serverCtx),
 			},
+			rest.Route{
+				// 获取用户地址列表
+				Method:  http.MethodGet,
+				Path:    "/user/addresses",
+				Handler: user.GetAddressesHandler(serverCtx),
+			},
+			rest.Route{
+				// 添加收货地址
+				Method:  http.MethodPost,
+				Path:    "/user/addresses",
+				Handler: user.AddAddressHandler(serverCtx),
+			},
+			rest.Route{
+				// 获取地址详情
+				Method:  http.MethodGet,
+				Path:    "/user/addresses/:id",
+				Handler: user.GetAddressDetailHandler(serverCtx),
+			},
+			rest.Route{
+				// 更新收货地址
+				Method:  http.MethodPut,
+				Path:    "/user/addresses/:id",
+				Handler: user.UpdateAddressHandler(serverCtx),
+			},
+			rest.Route{
+				// 删除收货地址
+				Method:  http.MethodDelete,
+				Path:    "/user/addresses/:id",
+				Handler: user.DeleteAddressHandler(serverCtx),
+			},
+			rest.Route{
+				// 设置默认地址
+				Method:  http.MethodPut,
+				Path:    "/user/addresses/:id/default",
+				Handler: user.SetDefaultAddressHandler(serverCtx),
+			},
 		),
 		rest.WithPrefix("/api"),
 	)

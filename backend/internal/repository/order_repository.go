@@ -189,3 +189,74 @@ func (r *OrderRepository) GetByUserID(ctx context.Context, userID int64, status 
 func (r *OrderRepository) GetBySellerID(ctx context.Context, merchantID int64, status string, page, pageSize int) ([]*models.Order, int64, error) {
 	return r.ListByMerchant(ctx, merchantID, page, pageSize, status)
 }
+
+// CountByMerchant 统计商户订单总数
+func (r *OrderRepository) CountByMerchant(ctx context.Context, merchantID int64) (int, error) {
+	var count int64
+	err := r.db.WithContext(ctx).
+		Model(&models.Order{}).
+		Joins("INNER JOIN order_items ON orders.id = order_items.order_id").
+		Joins("INNER JOIN products ON order_items.product_id = products.id").
+		Where("products.seller_id = ?", merchantID).
+		Group("orders.id").
+		Count(&count).Error
+	return int(count), err
+}
+
+// CountByMerchantAndStatus 统计商户指定状态的订单数
+func (r *OrderRepository) CountByMerchantAndStatus(ctx context.Context, merchantID int64, status int) (int, error) {
+	var count int64
+	err := r.db.WithContext(ctx).
+		Model(&models.Order{}).
+		Joins("INNER JOIN order_items ON orders.id = order_items.order_id").
+		Joins("INNER JOIN products ON order_items.product_id = products.id").
+		Where("products.seller_id = ? AND orders.order_status = ?", merchantID, status).
+		Group("orders.id").
+		Count(&count).Error
+	return int(count), err
+}
+
+// GetRevenueSumByMerchant 统计商户总收入（已支付订单）
+func (r *OrderRepository) GetRevenueSumByMerchant(ctx context.Context, merchantID int64) (float64, error) {
+	var revenue float64
+
+	// 查询该商户所有已支付订单（状态>=1表示已支付及之后的状态）的订单项总金额
+	err := r.db.WithContext(ctx).
+		Model(&models.OrderItem{}).
+		Select("COALESCE(SUM(order_items.subtotal), 0)").
+		Joins("INNER JOIN products ON order_items.product_id = products.id").
+		Joins("INNER JOIN orders ON order_items.order_id = orders.id").
+		Where("products.seller_id = ? AND orders.order_status >= ?", merchantID, models.OrderStatusPaid).
+		Scan(&revenue).Error
+
+	return revenue, err
+}
+
+// GetTodayOrdersByMerchant 统计商户今日订单数
+func (r *OrderRepository) GetTodayOrdersByMerchant(ctx context.Context, merchantID int64) (int, error) {
+	var count int64
+	err := r.db.WithContext(ctx).
+		Model(&models.Order{}).
+		Joins("INNER JOIN order_items ON orders.id = order_items.order_id").
+		Joins("INNER JOIN products ON order_items.product_id = products.id").
+		Where("products.seller_id = ? AND DATE(orders.created_at) = CURRENT_DATE", merchantID).
+		Group("orders.id").
+		Count(&count).Error
+	return int(count), err
+}
+
+// GetTodaySalesByMerchant 统计商户今日销售额
+func (r *OrderRepository) GetTodaySalesByMerchant(ctx context.Context, merchantID int64) (float64, error) {
+	var sales float64
+
+	err := r.db.WithContext(ctx).
+		Model(&models.OrderItem{}).
+		Select("COALESCE(SUM(order_items.subtotal), 0)").
+		Joins("INNER JOIN products ON order_items.product_id = products.id").
+		Joins("INNER JOIN orders ON order_items.order_id = orders.id").
+		Where("products.seller_id = ? AND orders.order_status >= ? AND DATE(orders.created_at) = CURRENT_DATE",
+			merchantID, models.OrderStatusPaid).
+		Scan(&sales).Error
+
+	return sales, err
+}

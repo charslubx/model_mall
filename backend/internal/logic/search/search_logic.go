@@ -57,11 +57,23 @@ func (l *SearchLogic) Search(req *types.SearchRequest) (resp *types.SearchRespon
 		if len(images) > 0 {
 			image = images[0]
 		}
+		// 如果images为空，使用主图片
+		if image == "" && product.Image != "" {
+			image = product.Image
+		}
 
 		// 解析标签
 		var tags []string
 		if product.Tags != "" {
 			_ = json.Unmarshal([]byte(product.Tags), &tags)
+		}
+
+		// 获取分类名称
+		categoryName := ""
+		if product.CategoryID > 0 {
+			var category struct{ Name string }
+			l.svcCtx.OrmHelper.GetDB().Table("categories").Select("name").Where("id = ?", product.CategoryID).First(&category)
+			categoryName = category.Name
 		}
 
 		// 获取卖家信息
@@ -81,7 +93,7 @@ func (l *SearchLogic) Search(req *types.SearchRequest) (resp *types.SearchRespon
 			Name:     product.Name,
 			Price:    product.Price,
 			Image:    image,
-			Category: product.Category,
+			Category: categoryName,
 			Rating:   product.Rating,
 			Sales:    int(product.Sales),
 			Stock:    int(product.Stock),

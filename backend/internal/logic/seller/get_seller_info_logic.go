@@ -47,17 +47,50 @@ func (l *GetSellerInfoLogic) GetSellerInfo(sellerId string) (resp *types.SellerD
 		return nil, fmt.Errorf("该用户不是商户")
 	}
 
-	// TODO: 查询卖家的统计数据
-	resp = &types.SellerDetail{
-		Id:            sellerId,
-		Name:          seller.MerchantName,
-		Avatar:        seller.Avatar,
-		Description:   seller.Description,
-		TotalSales:    1024,
-		Rating:        4.8,
-		ReviewsCount:  456,
-		JoinDate:      seller.CreatedAt.Format("2006-01-02"),
-		ProductsCount: 128,
+	// 从merchant_profiles表查询商户详细信息
+	var merchantProfile struct {
+		ShopName        string
+		ShopDescription string
+		ShopAvatar      string
+		Rating          float64
+		TotalSales      int
+		ProductsCount   int
+		ReviewsCount    int
+		JoinDate        string
+	}
+
+	err = l.svcCtx.OrmHelper.GetDB().Table("merchant_profiles").
+		Select("shop_name, shop_description, shop_avatar, rating, total_sales, products_count, reviews_count, join_date").
+		Where("user_id = ?", id).
+		First(&merchantProfile).Error
+
+	if err != nil {
+		logx.Errorf("查询商户详情失败 user_id=%d, error=%v", id, err)
+		// 如果查不到merchant_profiles，使用默认值
+		resp = &types.SellerDetail{
+			Id:            sellerId,
+			Name:          seller.MerchantName,
+			Avatar:        seller.Avatar,
+			Description:   seller.Description,
+			TotalSales:    0,
+			Rating:        5.0,
+			ReviewsCount:  0,
+			JoinDate:      seller.CreatedAt.Format("2006-01-02"),
+			ProductsCount: 0,
+		}
+	} else {
+		// 使用merchant_profiles中的数据
+		resp = &types.SellerDetail{
+			Id:            sellerId,
+			Name:          merchantProfile.ShopName,
+			Avatar:        merchantProfile.ShopAvatar,
+			Description:   merchantProfile.ShopDescription,
+			TotalSales:    merchantProfile.TotalSales,
+			Rating:        merchantProfile.Rating,
+			ReviewsCount:  merchantProfile.ReviewsCount,
+			JoinDate:      merchantProfile.JoinDate,
+			ProductsCount: merchantProfile.ProductsCount,
+		}
 	}
 
 	return resp, nil

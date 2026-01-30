@@ -60,7 +60,11 @@ func (r *ProductRepository) List(ctx context.Context, page, pageSize int, catego
 
 	// 构建查询条件
 	if category != "" {
-		db = db.Where("category = ?", category)
+		// 通过分类名称查找分类ID
+		var cat models.Category
+		if err := r.db.Where("name = ?", category).First(&cat).Error; err == nil {
+			db = db.Where("category_id = ?", cat.ID)
+		}
 	}
 	if keyword != "" {
 		db = db.Where("name LIKE ?", "%"+keyword+"%")
@@ -123,7 +127,11 @@ func (r *ProductRepository) ListByMerchant(ctx context.Context, merchantID int64
 
 	// 构建查询条件
 	if category != "" {
-		db = db.Where("category = ?", category)
+		// 通过分类名称查找分类ID
+		var cat models.Category
+		if err := r.db.Where("name = ?", category).First(&cat).Error; err == nil {
+			db = db.Where("category_id = ?", cat.ID)
+		}
 	}
 	if status != "" {
 		if status == "active" {
@@ -213,4 +221,25 @@ func (r *ProductRepository) GetByIDs(ctx context.Context, ids []int64) ([]*model
 	var products []*models.Product
 	err := r.db.WithContext(ctx).Where("id IN ?", ids).Find(&products).Error
 	return products, err
+}
+
+// CountByMerchant 统计商户商品总数
+func (r *ProductRepository) CountByMerchant(ctx context.Context, merchantID int64) (int, error) {
+	var count int64
+	err := r.db.WithContext(ctx).
+		Model(&models.Product{}).
+		Where("seller_id = ?", merchantID).
+		Count(&count).Error
+	return int(count), err
+}
+
+// GetTotalSalesByMerchant 获取商户商品总销量
+func (r *ProductRepository) GetTotalSalesByMerchant(ctx context.Context, merchantID int64) (int, error) {
+	var totalSales int64
+	err := r.db.WithContext(ctx).
+		Model(&models.Product{}).
+		Where("seller_id = ?", merchantID).
+		Select("COALESCE(SUM(sales), 0)").
+		Scan(&totalSales).Error
+	return int(totalSales), err
 }

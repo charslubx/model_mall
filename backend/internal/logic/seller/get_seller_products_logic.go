@@ -55,11 +55,23 @@ func (l *GetSellerProductsLogic) GetSellerProducts(req *types.GetSellerProductsR
 		if len(images) > 0 {
 			image = images[0]
 		}
+		// 如果images为空，使用主图片
+		if image == "" && product.Image != "" {
+			image = product.Image
+		}
 
 		// 解析标签
 		var tags []string
 		if product.Tags != "" {
 			_ = json.Unmarshal([]byte(product.Tags), &tags)
+		}
+
+		// 获取分类名称
+		categoryName := ""
+		if product.CategoryID > 0 {
+			var category struct{ Name string }
+			l.svcCtx.OrmHelper.GetDB().Table("categories").Select("name").Where("id = ?", product.CategoryID).First(&category)
+			categoryName = category.Name
 		}
 
 		// 获取卖家信息
@@ -77,7 +89,7 @@ func (l *GetSellerProductsLogic) GetSellerProducts(req *types.GetSellerProductsR
 		productList = append(productList, types.ProductListItem{
 			Id:       fmt.Sprintf("%d", product.ID),
 			Name:     product.Name,
-			Category: product.Category,
+			Category: categoryName,
 			Price:    product.Price,
 			Image:    image,
 			Rating:   product.Rating,

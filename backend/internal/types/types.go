@@ -27,6 +27,49 @@ type AddressInfo struct {
 	IsDefault bool   `json:"isDefault"`
 }
 
+type AddAddressRequest struct {
+	Name      string `json:"name" validate:"required"`
+	Phone     string `json:"phone" validate:"required"`
+	Province  string `json:"province" validate:"required"`
+	City      string `json:"city" validate:"required"`
+	District  string `json:"district" validate:"required"`
+	Detail    string `json:"detail" validate:"required"`
+	IsDefault bool   `json:"isDefault"`
+}
+
+type AddAddressResponse struct {
+	Id        string `json:"id"`
+	CreatedAt string `json:"createdAt"`
+}
+
+type UpdateAddressRequest struct {
+	Name      string `json:"name,omitempty"`
+	Phone     string `json:"phone,omitempty"`
+	Province  string `json:"province,omitempty"`
+	City      string `json:"city,omitempty"`
+	District  string `json:"district,omitempty"`
+	Detail    string `json:"detail,omitempty"`
+	IsDefault bool   `json:"isDefault,omitempty"`
+}
+
+type UpdateAddressResponse struct {
+	Id        string `json:"id"`
+	UpdatedAt string `json:"updatedAt"`
+}
+
+type GetAddressesResponse struct {
+	Addresses []AddressInfo `json:"addresses"`
+	Total     int           `json:"total"`
+}
+
+type GetAddressDetailResponse struct {
+	Address AddressInfo `json:"address"`
+}
+
+type SetDefaultAddressResponse struct {
+	Success bool `json:"success"`
+}
+
 type AdminDashboard struct {
 	TotalUsers     int     `json:"totalUsers"`
 	TotalMerchants int     `json:"totalMerchants"`
@@ -496,37 +539,41 @@ type PaymentInfo struct {
 }
 
 type ProductDetail struct {
-	Id              string           `json:"id"`
-	Name            string           `json:"name"`
-	Description     string           `json:"description"`
-	Category        string           `json:"category"`
-	Price           float64          `json:"price"`
-	Stock           int              `json:"stock"`
-	Rating          float64          `json:"rating"`
-	Reviews         int              `json:"reviews"`
-	Images          []string         `json:"images"`
-	Colors          []ColorOption    `json:"colors,omitempty"`
-	Sizes           []string         `json:"sizes,omitempty"`
-	Tags            []string         `json:"tags"`
-	Features        []string         `json:"features,omitempty"`
-	Specifications  Specifications   `json:"specifications,omitempty"`
-	Seller          SellerInfo       `json:"seller"`
-	RelatedProducts []RelatedProduct `json:"relatedProducts,omitempty"`
-	CreatedAt       string           `json:"createdAt"`
-	UpdatedAt       string           `json:"updatedAt"`
+	Id              string                 `json:"id"`
+	Name            string                 `json:"name"`
+	Description     string                 `json:"description"`
+	Category        string                 `json:"category"`
+	Price           float64                `json:"price"`
+	Stock           int                    `json:"stock"`
+	Rating          float64                `json:"rating"`
+	Reviews         int                    `json:"reviews"`
+	Images          []string               `json:"images"`
+	Colors          []ColorOption          `json:"colors,omitempty"`
+	Sizes           []string               `json:"sizes,omitempty"`
+	Tags            []string               `json:"tags"`
+	Features        []string               `json:"features,omitempty"`
+	Specifications  map[string]interface{} `json:"specifications,omitempty"`
+	Seller          SellerInfo             `json:"seller"`
+	RelatedProducts []RelatedProduct       `json:"relatedProducts,omitempty"`
+	CreatedAt       string                 `json:"createdAt"`
+	UpdatedAt       string                 `json:"updatedAt"`
 }
 
 type ProductListItem struct {
-	Id       string     `json:"id"`
-	Name     string     `json:"name"`
-	Category string     `json:"category"`
-	Price    float64    `json:"price"`
-	Image    string     `json:"image"`
-	Rating   float64    `json:"rating"`
-	Sales    int        `json:"sales"`
-	Stock    int        `json:"stock"`
-	Tags     []string   `json:"tags"`
-	Seller   SellerInfo `json:"seller"`
+	Id          string        `json:"id"`
+	Name        string        `json:"name"`
+	Category    string        `json:"category"`
+	Price       float64       `json:"price"`
+	Image       string        `json:"image"`
+	Images      []string      `json:"images,omitempty"`
+	Rating      float64       `json:"rating"`
+	Sales       int           `json:"sales"`
+	Stock       int           `json:"stock"`
+	Tags        []string      `json:"tags"`
+	Colors      []ColorOption `json:"colors,omitempty"`
+	Sizes       []string      `json:"sizes,omitempty"`
+	Description string        `json:"description,omitempty"`
+	Seller      SellerInfo    `json:"seller"`
 }
 
 type RecentOrder struct {

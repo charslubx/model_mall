@@ -96,16 +96,20 @@ type SellerInfo {
 }
 
 type ProductListItem {
-	Id       string     `json:"id"`
-	Name     string     `json:"name"`
-	Category string     `json:"category"`
-	Price    float64    `json:"price"`
-	Image    string     `json:"image"`
-	Rating   float64    `json:"rating"`
-	Sales    int        `json:"sales"`
-	Stock    int        `json:"stock"`
-	Tags     []string   `json:"tags"`
-	Seller   SellerInfo `json:"seller"`
+	Id          string         `json:"id"`
+	Name        string         `json:"name"`
+	Category    string         `json:"category"`
+	Price       float64        `json:"price"`
+	Image       string         `json:"image"`
+	Images      []string       `json:"images,omitempty"`
+	Rating      float64        `json:"rating"`
+	Sales       int            `json:"sales"`
+	Stock       int            `json:"stock"`
+	Tags        []string       `json:"tags"`
+	Colors      []ColorOption  `json:"colors,omitempty"`
+	Sizes       []string       `json:"sizes,omitempty"`
+	Description string         `json:"description,omitempty"`
+	Seller      SellerInfo     `json:"seller"`
 }
 
 type GetProductsRequest {
@@ -135,6 +139,8 @@ type ColorOption {
 type Specifications {
 	Material string `json:"material,omitempty"`
 	Care     string `json:"care,omitempty"`
+	// 注意：实际使用时，specifications 字段会返回 map[string]string 类型
+	// 包含所有规格参数的键值对
 }
 
 type RelatedProduct {
@@ -145,24 +151,24 @@ type RelatedProduct {
 }
 
 type ProductDetail {
-	Id              string           `json:"id"`
-	Name            string           `json:"name"`
-	Description     string           `json:"description"`
-	Category        string           `json:"category"`
-	Price           float64          `json:"price"`
-	Stock           int              `json:"stock"`
-	Rating          float64          `json:"rating"`
-	Reviews         int              `json:"reviews"`
-	Images          []string         `json:"images"`
-	Colors          []ColorOption    `json:"colors,omitempty"`
-	Sizes           []string         `json:"sizes,omitempty"`
-	Tags            []string         `json:"tags"`
-	Features        []string         `json:"features,omitempty"`
-	Specifications  Specifications   `json:"specifications,omitempty"`
-	Seller          SellerInfo       `json:"seller"`
-	RelatedProducts []RelatedProduct `json:"relatedProducts,omitempty"`
-	CreatedAt       string           `json:"createdAt"`
-	UpdatedAt       string           `json:"updatedAt"`
+	Id              string                 `json:"id"`
+	Name            string                 `json:"name"`
+	Description     string                 `json:"description"`
+	Category        string                 `json:"category"`
+	Price           float64                `json:"price"`
+	Stock           int                    `json:"stock"`
+	Rating          float64                `json:"rating"`
+	Reviews         int                    `json:"reviews"`
+	Images          []string               `json:"images"`
+	Colors          []ColorOption          `json:"colors,omitempty"`
+	Sizes           []string               `json:"sizes,omitempty"`
+	Tags            []string               `json:"tags"`
+	Features        []string               `json:"features,omitempty"`
+	Specifications  map[string]interface{} `json:"specifications,omitempty"`
+	Seller          SellerInfo             `json:"seller"`
+	RelatedProducts []RelatedProduct       `json:"relatedProducts,omitempty"`
+	CreatedAt       string                 `json:"createdAt"`
+	UpdatedAt       string                 `json:"updatedAt"`
 }
 
 type Category {
@@ -513,6 +519,51 @@ type UploadAvatarResponse {
 type ChangePasswordRequest {
 	OldPassword string `json:"oldPassword" validate:"required"`
 	NewPassword string `json:"newPassword" validate:"required,min=8"`
+}
+
+// ==================== 地址管理模块 ====================
+
+type AddAddressRequest {
+	Name      string `json:"name" validate:"required"`
+	Phone     string `json:"phone" validate:"required"`
+	Province  string `json:"province" validate:"required"`
+	City      string `json:"city" validate:"required"`
+	District  string `json:"district" validate:"required"`
+	Detail    string `json:"detail" validate:"required"`
+	IsDefault bool   `json:"isDefault"`
+}
+
+type AddAddressResponse {
+	Id        string `json:"id"`
+	CreatedAt string `json:"createdAt"`
+}
+
+type UpdateAddressRequest {
+	Name      string `json:"name,omitempty"`
+	Phone     string `json:"phone,omitempty"`
+	Province  string `json:"province,omitempty"`
+	City      string `json:"city,omitempty"`
+	District  string `json:"district,omitempty"`
+	Detail    string `json:"detail,omitempty"`
+	IsDefault bool   `json:"isDefault,omitempty"`
+}
+
+type UpdateAddressResponse {
+	Id        string `json:"id"`
+	UpdatedAt string `json:"updatedAt"`
+}
+
+type GetAddressesResponse {
+	Addresses []AddressInfo `json:"addresses"`
+	Total     int           `json:"total"`
+}
+
+type GetAddressDetailResponse {
+	Address AddressInfo `json:"address"`
+}
+
+type SetDefaultAddressResponse {
+	Success bool `json:"success"`
 }
 
 // ==================== 商户管理模块 ====================
@@ -971,6 +1022,30 @@ service backend-api {
 	@doc "获取用户订单历史"
 	@handler GetUserOrders
 	get /user/orders (GetOrdersRequest) returns (GetOrdersResponse)
+	
+	@doc "获取用户地址列表"
+	@handler GetAddresses
+	get /user/addresses returns (GetAddressesResponse)
+	
+	@doc "添加收货地址"
+	@handler AddAddress
+	post /user/addresses (AddAddressRequest) returns (AddAddressResponse)
+	
+	@doc "获取地址详情"
+	@handler GetAddressDetail
+	get /user/addresses/:id returns (GetAddressDetailResponse)
+	
+	@doc "更新收货地址"
+	@handler UpdateAddress
+	put /user/addresses/:id (UpdateAddressRequest) returns (UpdateAddressResponse)
+	
+	@doc "删除收货地址"
+	@handler DeleteAddress
+	delete /user/addresses/:id returns (BaseResponse)
+	
+	@doc "设置默认地址"
+	@handler SetDefaultAddress
+	put /user/addresses/:id/default returns (SetDefaultAddressResponse)
 }
 
 @server(

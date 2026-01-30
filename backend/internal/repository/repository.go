@@ -16,6 +16,7 @@ type Repositories struct {
 	ProductRepo             *ProductRepository
 	CartRepo                *CartRepository
 	OrderRepo               *OrderRepository
+	AddressRepo             *AddressRepository
 }
 
 // NewRepositories 创建仓库集合
@@ -31,5 +32,6 @@ func NewRepositories(db *gorm.DB) *Repositories {
 		ProductRepo:             NewProductRepository(db),
 		CartRepo:                NewCartRepository(db),
 		OrderRepo:               NewOrderRepository(db),
+		AddressRepo:             NewAddressRepository(db),
 	}
 }

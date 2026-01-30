@@ -55,7 +55,7 @@ func (l *GetProductsLogic) GetProducts(req *types.GetProductsRequest) (resp *typ
 			_ = json.Unmarshal([]byte(p.Tags), &tags)
 		}
 
-		// 解析第一张图片
+		// 解析图片
 		var images []string
 		if p.Images != "" {
 			_ = json.Unmarshal([]byte(p.Images), &images)
@@ -64,24 +64,99 @@ func (l *GetProductsLogic) GetProducts(req *types.GetProductsRequest) (resp *typ
 		if len(images) > 0 {
 			image = images[0]
 		}
+		// 如果images为空，使用主图片
+		if image == "" && p.Image != "" {
+			image = p.Image
+		}
 
-		// 获取卖家信息(简化处理,实际应该查询用户表)
+		// 解析颜色选项
+		var colors []types.ColorOption
+		if p.Colors != "" {
+			_ = json.Unmarshal([]byte(p.Colors), &colors)
+		}
+		// 如果JSON字段为空，从product_colors表查询
+		if len(colors) == 0 {
+			var colorRows []struct {
+				Name  string
+				Value string
+				Hex   string
+			}
+			l.svcCtx.OrmHelper.GetDB().Table("product_colors").
+				Select("name, value, hex").
+				Where("product_id = ?", p.ID).
+				Find(&colorRows)
+			for _, row := range colorRows {
+				colors = append(colors, types.ColorOption{
+					Name:  row.Name,
+					Value: row.Value,
+					Hex:   row.Hex,
+				})
+			}
+		}
+
+		// 解析尺码
+		var sizes []string
+		if p.Sizes != "" {
+			_ = json.Unmarshal([]byte(p.Sizes), &sizes)
+		}
+		// 如果JSON字段为空，从product_sizes表查询
+		if len(sizes) == 0 {
+			var sizeRows []struct {
+				Size string
+			}
+			l.svcCtx.OrmHelper.GetDB().Table("product_sizes").
+				Select("size").
+				Where("product_id = ?", p.ID).
+				Find(&sizeRows)
+			for _, row := range sizeRows {
+				sizes = append(sizes, row.Size)
+			}
+		}
+
+		// 获取分类名称
+		categoryName := ""
+		if p.CategoryID > 0 {
+			var category struct{ Name string }
+			l.svcCtx.OrmHelper.GetDB().Table("categories").Select("name").Where("id = ?", p.CategoryID).First(&category)
+			categoryName = category.Name
+		}
+
+		// 获取商户信息
 		seller := types.SellerInfo{
-			Id:   fmt.Sprintf("%d", p.SellerID),
-			Name: "商户名称", // TODO: 从用户表查询
+			Id:     fmt.Sprintf("%d", p.SellerID),
+			Name:   "商户",
+			Rating: 5.0,
+		}
+		var merchantProfile struct {
+			ShopName   string
+			ShopAvatar string
+			Rating     float64
+		}
+		err := l.svcCtx.OrmHelper.GetDB().Table("merchant_profiles").
+			Select("shop_name, shop_avatar, rating").
+			Where("user_id = ?", p.SellerID).
+			First(&merchantProfile).Error
+		if err == nil {
+			seller.Name = merchantProfile.ShopName
+			seller.Avatar = merchantProfile.ShopAvatar
+			seller.Rating = merchantProfile.Rating
 		}
 
 		productList = append(productList, types.ProductListItem{
-			Id:       fmt.Sprintf("%d", p.ID),
-			Name:     p.Name,
-			Category: p.Category,
-			Price:    p.Price,
-			Image:    image,
-			Rating:   p.Rating,
-			Sales:    p.Sales,
-			Stock:    p.Stock,
-			Tags:     tags,
-			Seller:   seller,
+			Id:          fmt.Sprintf("%d", p.ID),
+			Name:        p.Name,
+			Category:    categoryName,
+			Price:       p.Price,
+			Image:       image,
+			Images:      images,
+			Rating:      p.Rating,
+			Sales:       p.Sales,
+			Stock:       p.Stock,
+			Tags:        tags,
+			Colors:      colors,
+			Sizes:       sizes,
+			Description: p.Description,
+			Seller:      seller,
 		})
 	}
 

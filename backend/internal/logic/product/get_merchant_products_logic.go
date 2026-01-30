@@ -68,6 +68,18 @@ func (l *GetMerchantProductsLogic) GetMerchantProducts(req *types.GetMerchantPro
 		if len(images) > 0 {
 			image = images[0]
 		}
+		// 如果images为空，使用主图片
+		if image == "" && p.Image != "" {
+			image = p.Image
+		}
+
+		// 获取分类名称
+		categoryName := ""
+		if p.CategoryID > 0 {
+			var category struct{ Name string }
+			l.svcCtx.OrmHelper.GetDB().Table("categories").Select("name").Where("id = ?", p.CategoryID).First(&category)
+			categoryName = category.Name
+		}
 
 		// 状态转换
 		status := "active"
@@ -78,7 +90,7 @@ func (l *GetMerchantProductsLogic) GetMerchantProducts(req *types.GetMerchantPro
 		productList = append(productList, types.MerchantProductItem{
 			Id:        fmt.Sprintf("%d", p.ID),
 			Name:      p.Name,
-			Category:  p.Category,
+			Category:  categoryName,
 			Price:     p.Price,
 			Stock:     p.Stock,
 			Status:    status,

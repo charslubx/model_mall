@@ -38,11 +38,17 @@ func (l *GetCategoriesLogic) GetCategories() (resp *types.GetCategoriesResponse,
 	// 转换为响应格式
 	categoryList := make([]types.Category, 0, len(categories))
 	for _, c := range categories {
+		// 统计该分类下的商品数量
+		var count int64
+		l.svcCtx.OrmHelper.GetDB().Model(&struct {
+			ID int64 `gorm:"column:id"`
+		}{}).Table("products").Where("category_id = ? AND status = 1", c.ID).Count(&count)
+
 		categoryList = append(categoryList, types.Category{
 			Id:    fmt.Sprintf("%d", c.ID),
 			Name:  c.Name,
-			Slug:  c.Slug,
-			Count: c.Count,
+			Slug:  "", // 数据库中没有slug字段，返回空字符串
+			Count: int(count),
 			Icon:  c.Icon,
 		})
 	}
