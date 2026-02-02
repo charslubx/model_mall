@@ -1,0 +1,25 @@
+{
+  "name": "lottie-optimization-tools",
+  "version": "1.0.0",
+  "description": "Lottie 和图片优化工具",
+  "scripts": {
+    "optimize:images": "node optimize-images.js",
+    "optimize:lottie": "lottie-optimizer -i public/img/Christmas/bg.json -o public/img/Christmas/bg.optimized.json",
+    "optimize:lottie:aggressive": "lottie-optimizer -i public/img/Christmas/bg.json -o public/img/Christmas/bg.optimized.json --compress --precision 2",
+    "optimize:all": "npm run optimize:lottie && npm run optimize:images",
+    "serve:compressed": "http-server dist -g -c-1 --gzip",
+    "build:prod": "npm run optimize:all && ng build --configuration production"
+  },
+  "devDependencies": {
+    "@lottiefiles/lottie-optimizer": "^1.0.2",
+    "sharp": "^0.33.0",
+    "imagemin": "^8.0.1",
+    "imagemin-mozjpeg": "^10.0.0",
+    "imagemin-pngquant": "^9.0.2",
+    "imagemin-webp": "^8.0.0",
+    "http-server": "^14.1.1"
+  },
+  "dependencies": {
+    "lottie-web": "^5.12.2"
+  }
+}
